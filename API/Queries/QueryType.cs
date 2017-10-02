@@ -19,7 +19,7 @@ namespace API.Models
 
             Field<UserType>("user",
                 arguments: new QueryArguments(new QueryArgument<IntGraphType> { Name = "id" }),
-                resolve: userService.getUser);
+                resolve: userService.GetUser);
 
 //            Field<TemplateType>("template",
 //                arguments: new QueryArguments(new QueryArgument<IntGraphType> {Name = "id"}),

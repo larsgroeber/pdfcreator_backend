@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography;
 using API.Contexts;
 using API.Models;
 using GraphQL;
@@ -7,6 +8,7 @@ using GraphQL.Types;
 using JWT;
 using JWT.Algorithms;
 using JWT.Serializers;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -37,8 +39,8 @@ namespace API.Services
             IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
 
             User = _context.Users.Include(_ => _.Role)
-                .FirstOrDefault(_ => _.Name == username && _.Password == password);
-            if (User != null)
+                .FirstOrDefault(_ => _.Name == username);
+            if (User != null && BCrypt.Net.BCrypt.Verify(password, User.Password))
             {
                 string token = encoder.Encode(User, _secret);
                 Token = token;
@@ -73,6 +75,11 @@ namespace API.Services
             {
                 Console.WriteLine(e.ToString());
             }
+        }
+
+        public string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         public void CheckAuthentication(int id, string role = "admin")

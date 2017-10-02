@@ -19,7 +19,7 @@ namespace API.Services
             _authService = authService;
         }
 
-        public User getUser(ResolveFieldContext<object> context)
+        public User GetUser(ResolveFieldContext<object> context)
         {
             int id = context.GetArgument<int>("id");
 
@@ -109,7 +109,7 @@ namespace API.Services
                 if (user != null)
                 {
                     user.Name = username != "" ? username : user.Name;
-                    user.Password = password != "" ? password : user.Password;
+                    user.Password = password != "" ? _authService.HashPassword(password) : user.Password;
                     user.Role = role != "" ? _context.Roles.Single(_ => _.Name == role) : user.Role;
                     _context.SaveChanges();
                     return user;
@@ -171,7 +171,7 @@ namespace API.Services
                 User newUser = new User
                 {
                     Name = username,
-                    Password = password,
+                    Password = _authService.HashPassword(password),
                     Role = _context.Roles.First(_ => _.Name == "user")
                 };
 
