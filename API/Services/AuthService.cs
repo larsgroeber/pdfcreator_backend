@@ -17,7 +17,6 @@ namespace API.Services
 {
     public class AuthService
     {
-        private readonly IConfiguration _configuration;
         private readonly PDFCreatorContext _context;
         private readonly string _secret;
         public User User { set; get; }
@@ -25,9 +24,8 @@ namespace API.Services
 
         public AuthService(IConfiguration configuration, PDFCreatorContext context)
         {
-            _configuration = configuration;
             _context = context;
-            _secret = _configuration["JWT-Secret"];
+            _secret = configuration["JWT-Secret"];
         }
 
 
@@ -38,8 +36,8 @@ namespace API.Services
             IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
             IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
 
-            User = _context.Users.Include(_ => _.Role)
-                .FirstOrDefault(_ => _.Name == username);
+            User = _context.Users.Include(_ => _.Role).FirstOrDefault(_ => _.Name == username);
+
             if (User != null && BCrypt.Net.BCrypt.Verify(password, User.Password))
             {
                 string token = encoder.Encode(User, _secret);
@@ -77,9 +75,9 @@ namespace API.Services
             }
         }
 
-        public string HashPassword(string password)
+        public static string HashPassword(string password)
         {
-            return BCrypt.Net.BCrypt.HashPassword(password);
+            return BCrypt.Net.BCrypt.HashPassword(password, 11);
         }
 
         public void CheckAuthentication(int id, string role = "admin")

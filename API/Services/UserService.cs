@@ -109,7 +109,7 @@ namespace API.Services
                 if (user != null)
                 {
                     user.Name = username != "" ? username : user.Name;
-                    user.Password = password != "" ? _authService.HashPassword(password) : user.Password;
+                    user.Password = password != "" ? AuthService.HashPassword(password) : user.Password;
                     user.Role = role != "" ? _context.Roles.Single(_ => _.Name == role) : user.Role;
                     _context.SaveChanges();
                     return user;
@@ -171,7 +171,7 @@ namespace API.Services
                 User newUser = new User
                 {
                     Name = username,
-                    Password = _authService.HashPassword(password),
+                    Password = AuthService.HashPassword(password),
                     Role = _context.Roles.First(_ => _.Name == "user")
                 };
 
