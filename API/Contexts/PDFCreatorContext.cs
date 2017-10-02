@@ -13,5 +13,13 @@ namespace API.Contexts
             : base(options)
         {
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Indexed properties need to be restricted in length!
+            modelBuilder.Entity<User>().HasIndex(u => u.Name).IsUnique();
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

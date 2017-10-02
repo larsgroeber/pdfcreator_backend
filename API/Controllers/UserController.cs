@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using API.Contexts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace API.Controllers
@@ -17,7 +18,7 @@ namespace API.Controllers
         // GET
         public IActionResult Index()
         {
-            return Json(_context.Users.ToList());
+            return Json(_context.Users.Include(_ => _.Role).ToList());
         }
     }
 }

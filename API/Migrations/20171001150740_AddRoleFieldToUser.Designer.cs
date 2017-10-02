@@ -11,9 +11,10 @@ using System;
 namespace API.Migrations
 {
     [DbContext(typeof(PDFCreatorContext))]
-    partial class PDFCreatorContextModelSnapshot : ModelSnapshot
+    [Migration("20171001150740_AddRoleFieldToUser")]
+    partial class AddRoleFieldToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,9 +68,6 @@ namespace API.Migrations
                     b.Property<int?>("RoleId");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
 
                     b.HasIndex("RoleId");
 
