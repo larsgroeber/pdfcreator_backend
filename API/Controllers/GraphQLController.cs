@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using API.Models;
 using API.Mutations;
 using API.Queries;
 using GraphQL;
@@ -15,10 +16,13 @@ namespace API.Controllers
     {
         private readonly RootQuery _query;
         private readonly RootMutation _mutation;
-        public GraphQlController(RootQuery rootQuery, RootMutation rootMutation)
+        private readonly IServiceProvider _serviceProvider;
+
+        public GraphQlController(RootQuery rootQuery, RootMutation rootMutation, IServiceProvider serviceProvider)
         {
             _query = rootQuery;
             _mutation = rootMutation;
+            _serviceProvider = serviceProvider;
         }
 
         [HttpPost("graphql")]
@@ -35,6 +39,12 @@ namespace API.Controllers
 
         private async Task<IActionResult> ResolveQuery(string query)
         {
+            // Pure man's DI, graphQL for .Net does not support build in IoC
+            AuthType.ServiceProvider = _serviceProvider;
+            TemplateType.ServiceProvider = _serviceProvider;
+            MutationType.ServiceProvider = _serviceProvider;
+            QueryType.ServiceProvider = _serviceProvider;
+
             var schema = new Schema
             {
                 Query = _query,

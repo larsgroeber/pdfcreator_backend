@@ -9,11 +9,11 @@ namespace API.Queries
 {
     public class AuthType : ObjectGraphType
     {
-        internal static IServiceProvider _serviceProvider { get; set; }
+        internal static IServiceProvider ServiceProvider { get; set; }
 
         public AuthType()
         {
-            AuthService authService = _serviceProvider.GetService<AuthService>();
+            AuthService authService = ServiceProvider.GetService<AuthService>();
 
             Field<StringGraphType>("token", resolve: _ => authService.Token);
             Field<UserType>("user",

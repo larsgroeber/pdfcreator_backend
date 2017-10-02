@@ -1,4 +1,6 @@
-﻿using API.Contexts;
+﻿using System;
+using API.Contexts;
+using API.Models;
 using API.Mutations;
 using API.Queries;
 using API.Services;
@@ -29,6 +31,8 @@ namespace API
 
             services.AddTransient<RootQuery>();
             services.AddTransient<RootMutation>();
+            services.AddTransient<UserService>();
+            services.AddTransient<TemplateService>();
             services.AddScoped<AuthService>();
         }
 
@@ -39,6 +43,7 @@ namespace API
             {
                 app.UseDeveloperExceptionPage();
             }
+
 
             app.UseMvc();
         }

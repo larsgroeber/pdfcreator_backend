@@ -8,11 +8,9 @@ namespace API.Mutations
 {
     public class RootMutation : ObjectGraphType
     {
-        public RootMutation(AuthService authService, IServiceProvider serviceProvider)
+        public RootMutation(AuthService authService)
         {
             Name = "mutation";
-
-            MutationType.ServiceProvider = serviceProvider;
 
             Field<MutationType>("mutation",
                 arguments: new QueryArguments(new QueryArgument<StringGraphType> {Name = "token", DefaultValue = ""}),

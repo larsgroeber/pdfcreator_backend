@@ -17,26 +17,26 @@ namespace API.Mutations
     public class MutationType : ObjectGraphType
     {
         internal static IServiceProvider ServiceProvider { get; set; }
-        private readonly AuthService _auth;
-        private readonly PDFCreatorContext _context;
 
         public MutationType()
         {
-            AuthType._serviceProvider = ServiceProvider;
-            _auth = ServiceProvider.GetService<AuthService>();
-            _context = ServiceProvider.GetService<PDFCreatorContext>();
+            AuthType.ServiceProvider = ServiceProvider;
+            UserService userService = ServiceProvider.GetService<UserService>();
+            TemplateService templateService = ServiceProvider.GetService<TemplateService>();
 
             Field<AuthType>("authorize",
                 arguments: new QueryArguments(
                     new QueryArgument<StringGraphType> {Name = "username"},
                     new QueryArgument<StringGraphType> {Name = "password"}),
-                resolve: Authorize);
+                resolve: userService.Authorize);
+
+
 
             Field<UserType>("addUser",
                 arguments: new QueryArguments(
                     new QueryArgument<StringGraphType> {Name = "username"},
                     new QueryArgument<StringGraphType> {Name = "password"}),
-                resolve: AddUser);
+                resolve: userService.AddUser);
 
             Field<UserType>("updateUser",
                 arguments: new QueryArguments(
@@ -44,112 +44,49 @@ namespace API.Mutations
                     new QueryArgument<StringGraphType> {Name = "username", DefaultValue = ""},
                     new QueryArgument<StringGraphType> {Name = "password", DefaultValue = ""},
                     new QueryArgument<StringGraphType> {Name = "role", DefaultValue = ""}),
-                resolve: UpdateUser);
+                resolve: userService.UpdateUser);
 
             Field<SuccessType>("removeUser",
                 arguments: new QueryArguments(
                     new QueryArgument<IntGraphType> {Name = "id"}),
-                resolve: RemoveUser);
-        }
+                resolve: userService.RemoveUser);
 
-        private User UpdateUser(ResolveFieldContext<object> context)
-        {
-            int id = context.GetArgument<int>("id");
-            string username = context.GetArgument<string>("username");
-            string password = context.GetArgument<string>("password");
-            string role = context.GetArgument<string>("role");
 
-            try
-            {
-                User user = _context.Users.Include(_ => _.Role).SingleOrDefault(_ => _.Id == id);
-                if (user != null)
-                {
-                    user.Name = username != "" ? username : user.Name;
-                    user.Password = password != "" ? password : user.Password;
-                    user.Role = role != "" ? _context.Roles.Single(_ => _.Name == role) : user.Role;
-                    _context.SaveChanges();
-                    return user;
-                }
-                throw new Exception($"Could not find user with id '{id}'!");
-            }
-            catch (Exception e)
-            {
-                HandleError(context, e);
-                return null;
-            }
-        }
 
-        private SuccessType RemoveUser(ResolveFieldContext<object> context)
-        {
-            int id = context.GetArgument<int>("id");
-            try
-            {
-                if (_auth.User.Id != id && !_auth.CheckAuthentication("admin"))
-                {
-                    throw new UnauthorizedAccessException();
-                }
+            Field<UserType>("addTemplateToUser",
+                arguments: new QueryArguments(
+                    new QueryArgument<IntGraphType> {Name = "idTemplate"},
+                    new QueryArgument<IntGraphType> {Name = "idUser"}),
+                resolve: userService.AddTemplateToUser);
 
-                User user = new User {Id = id};
-                _context.Users.Attach(user);
-                _context.Users.Remove(user);
-                _context.SaveChanges();
-                return new SuccessType();
-            }
-            catch (Exception e)
-            {
-                HandleError(context, e);
-                return null;
-            }
-        }
+            Field<UserType>("removeTemplateFromUser",
+                arguments: new QueryArguments(
+                    new QueryArgument<IntGraphType> {Name = "idTemplate"},
+                    new QueryArgument<IntGraphType> {Name = "idUser"}),
+                resolve: userService.RemoveTemplateFromUser);
 
-        private AuthType Authorize(ResolveFieldContext<object> context)
-        {
-            string username = context.GetArgument<string>("username");
-            string password = context.GetArgument<string>("password");
 
-            try
-            {
-                _auth.Authorize(username, password);
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                HandleError(context, e);
-                return null;
-            }
 
-            return new AuthType();
-        }
+            Field<TemplateType>("addTemplate",
+                arguments: new QueryArguments(
+                    new QueryArgument<StringGraphType> {Name = "name"},
+                    new QueryArgument<StringGraphType> {Name = "description", DefaultValue = ""},
+                    new QueryArgument<IntGraphType> {Name = "idUser", DefaultValue = 0}),
+                resolve: templateService.AddTemplate);
 
-        private User AddUser(ResolveFieldContext<object> context)
-        {
-            string username = context.GetArgument<string>("username");
-            string password = context.GetArgument<string>("password");
+            Field<TemplateType>("updateTemplate",
+                arguments: new QueryArguments(
+                    new QueryArgument<IntGraphType> {Name = "id"},
+                    new QueryArgument<StringGraphType> {Name = "name", DefaultValue = ""},
+                    new QueryArgument<StringGraphType> {Name = "description", DefaultValue = ""}),
+                resolve: templateService.UpdateTemplate);
 
-            try
-            {
-                User newUser = new User
-                {
-                    Name = username,
-                    Password = password,
-                    Role = _context.Roles.First(_ => _.Name == "user")
-                };
-
-                _context.Users.Add(newUser);
-                _context.SaveChanges();
-                return newUser;
-            }
-            catch (Exception e)
-            {
-                HandleError(context, e);
-                return null;
-            }
+            Field<SuccessType>("removeTemplate",
+                arguments: new QueryArguments(
+                    new QueryArgument<IntGraphType> {Name = "id"}),
+                resolve: templateService.RemoveTemplate);
         }
 
 
-
-        private void HandleError(ResolveFieldContext<object> context, Exception e)
-        {
-            GraphQlErrorService.AttachError(context, e);
-        }
     }
 }

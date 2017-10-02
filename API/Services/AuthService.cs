@@ -58,9 +58,8 @@ namespace API.Services
                 IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder);
 
                 var json = decoder.Decode(token, _secret, verify: true);
-                Console.WriteLine(json);
                 User = JsonConvert.DeserializeObject<User>(json);
-                Console.WriteLine(User.ToString());
+                Console.WriteLine("Authorized user: " + User);
             }
             catch (TokenExpiredException)
             {
@@ -76,9 +75,12 @@ namespace API.Services
             }
         }
 
-        public bool CheckAuthentication(string role)
+        public void CheckAuthentication(int id, string role = "admin")
         {
-            return User.Role.Name == "admin" || User.Role.Name == role;
+            if (User.Id != id && User.Role.Name != "admin" && User.Role.Name != role)
+            {
+                throw new UnauthorizedAccessException();
+            }
         }
     }
 }

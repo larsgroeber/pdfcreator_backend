@@ -10,27 +10,20 @@ namespace API.Models
 {
     public class QueryType : ObjectGraphType
     {
-        internal static IServiceProvider _serviceProvider { get; set; }
-        private readonly AuthService _auth;
+        internal static IServiceProvider ServiceProvider { get; set; }
 
         public QueryType()
         {
             Name = "query";
-            _auth = _serviceProvider.GetService<AuthService>();
+            UserService userService = ServiceProvider.GetService<UserService>();
 
             Field<UserType>("user",
                 arguments: new QueryArguments(new QueryArgument<IntGraphType> { Name = "id" }),
-                resolve: context =>
-                {
-                    int id = context.GetArgument<int>("id");
-                    if (_auth.User.Id == id || _auth.CheckAuthentication("admin"))
-                    {
-                        return _serviceProvider.GetService<PDFCreatorContext>().Users
-                            .Include(_ => _.Role).FirstOrDefault(_ => _.Id == id);
-                    }
-                    throw new UnauthorizedAccessException("Role " + "admin" + " required!");
-                });
+                resolve: userService.getUser);
 
+//            Field<TemplateType>("template",
+//                arguments: new QueryArguments(new QueryArgument<IntGraphType> {Name = "id"}),
+//                resolve: templateService.getTemplate);
         }
     }
 }
