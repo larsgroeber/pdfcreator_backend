@@ -27,8 +27,28 @@ namespace API.Services
             {
                 _authService.CheckAuthentication(id);
 
-                return _context.Users.Include(_ => _.Role).Include(_ => _.Templates)
-                    .SingleOrDefault(_ => _.Id == id);
+                return GetUserById(id);
+            }
+            catch (Exception e)
+            {
+                HandleError(context, e);
+                return null;
+            }
+        }
+
+        private User GetUserById(int id)
+        {
+            return _context.Users.Include(_ => _.Role).Include(_ => _.Templates)
+                .SingleOrDefault(_ => _.Id == id);
+        }
+
+        public object GetActiveUser(ResolveFieldContext<object> context)
+        {
+            int id = _authService.User.Id;
+
+            try
+            {
+                return GetUserById(id);
             }
             catch (Exception e)
             {
@@ -160,6 +180,7 @@ namespace API.Services
 
             return new AuthType();
         }
+
 
         public User AddUser(ResolveFieldContext<object> context)
         {

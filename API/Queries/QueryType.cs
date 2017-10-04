@@ -21,6 +21,9 @@ namespace API.Models
                 arguments: new QueryArguments(new QueryArgument<IntGraphType> { Name = "id" }),
                 resolve: userService.GetUser);
 
+            Field<UserType>("activeUser",
+                resolve: userService.GetActiveUser);
+
 //            Field<TemplateType>("template",
 //                arguments: new QueryArguments(new QueryArgument<IntGraphType> {Name = "id"}),
 //                resolve: templateService.getTemplate);
