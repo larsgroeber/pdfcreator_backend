@@ -131,7 +131,7 @@ namespace API.Services
         private void CheckAuthenticationForTemplate(int id)
         {
             Template template = _context.Templates.SingleOrDefault(_ => _.Id == id);
-            User user = _context.Users.SingleOrDefault(_ => _.Templates.Contains(template));
+            User user = _context.Users.Include(_ => _.Templates).SingleOrDefault(_ => _.Id == id);
 
             if (user != null)
             {
