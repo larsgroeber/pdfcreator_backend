@@ -16,6 +16,7 @@ namespace API.Models
         {
             Name = "query";
             UserService userService = ServiceProvider.GetService<UserService>();
+            TemplateService templateService = ServiceProvider.GetService<TemplateService>();
 
             Field<UserType>("user",
                 arguments: new QueryArguments(new QueryArgument<IntGraphType> { Name = "id" }),
@@ -24,9 +25,9 @@ namespace API.Models
             Field<UserType>("activeUser",
                 resolve: userService.GetActiveUser);
 
-//            Field<TemplateType>("template",
-//                arguments: new QueryArguments(new QueryArgument<IntGraphType> {Name = "id"}),
-//                resolve: templateService.getTemplate);
+            Field<TemplateType>("template",
+                arguments: new QueryArguments(new QueryArgument<IntGraphType> {Name = "id"}),
+                resolve: templateService.GetTemplate);
         }
     }
 }

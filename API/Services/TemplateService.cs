@@ -18,6 +18,32 @@ namespace API.Services
             _authService = authService;
         }
 
+        public object GetTemplate(ResolveFieldContext<object> context)
+        {
+            int id = context.GetArgument<int>("id");
+            try
+            {
+                Template template = GetTemplateById(id);
+                CheckAuthenticationForTemplate(template);
+
+                if (template != null)
+                {
+                    return template;
+                }
+                throw new Exception($"Could not find Template with id '{id}'!");
+            }
+            catch (Exception e)
+            {
+                HandleError(context, e);
+                return null;
+            }
+        }
+
+        private Template GetTemplateById(int id)
+        {
+            return _context.Templates.SingleOrDefault(_ => _.Id == id);
+        }
+
         public Template UpdateTemplate(ResolveFieldContext<object> context)
         {
             int id = context.GetArgument<int>("id");
@@ -26,7 +52,7 @@ namespace API.Services
 
             try
             {
-                Template template = _context.Templates.SingleOrDefault(_ => _.Id == id);
+                Template template = GetTemplateById(id);
                 CheckAuthenticationForTemplate(template);
 
                 if (template != null)
