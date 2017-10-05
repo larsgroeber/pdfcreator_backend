@@ -53,10 +53,10 @@ namespace API.Services
             try
             {
                 Template template = GetTemplateById(id);
-                CheckAuthenticationForTemplate(template);
 
                 if (template != null)
                 {
+                    CheckAuthenticationForTemplate(template.Id);
                     template.Name = name != "" ? name : template.Name;
                     template.Description = description != "" ? description : template.Description;
                     _context.SaveChanges();
@@ -130,8 +130,7 @@ namespace API.Services
 
         private void CheckAuthenticationForTemplate(int id)
         {
-            Template template = _context.Templates.SingleOrDefault(_ => _.Id == id);
-            User user = _context.Users.Include(_ => _.Templates).SingleOrDefault(_ => _.Id == id);
+            User user = GetUserWhoOwnsTemplate(id);
 
             if (user != null)
             {
@@ -139,14 +138,14 @@ namespace API.Services
             }
             else
             {
-                Console.WriteLine($"Template of id '{template.Id}' has no user!");
+                Console.WriteLine($"Template of id '{id}' has no user!");
                 _authService.CheckAuthentication(-1);
             }
         }
 
         private void CheckAuthenticationForTemplate(Template template)
         {
-            User user = _context.Users.SingleOrDefault(_ => _.Templates.Contains(template));
+            User user = GetUserWhoOwnsTemplate(template.Id);
 
             if (user != null)
             {
@@ -164,7 +163,10 @@ namespace API.Services
             GraphQlErrorService.AttachError(context, e);
         }
 
-
-
+        private User GetUserWhoOwnsTemplate(int id)
+        {
+            return _context.Users.Include(_ => _.Templates)
+                .SingleOrDefault(_ => _.Templates.Any(t => t.Id == id));
+        }
     }
 }
