@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using API.Contexts;
 using API.Models;
 using API.Mutations;
@@ -34,6 +35,8 @@ namespace API
             services.AddTransient<UserService>();
             services.AddTransient<TemplateService>();
             services.AddScoped<AuthService>();
+
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,6 +47,7 @@ namespace API
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(builder => builder.AllowAnyOrigin());
 
             app.UseMvc();
         }

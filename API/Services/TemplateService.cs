@@ -78,9 +78,12 @@ namespace API.Services
             {
                 CheckAuthenticationForTemplate(id);
 
-                Template template = new Template {Id = id};
-                _context.Templates.Attach(template);
-                _context.Templates.Remove(template);
+
+
+                //Template template = new Template {Id = id};
+                //_context.Templates.Attach(template);
+                Template template = _context.Templates.SingleOrDefault(_ => _.Id == id);
+                _context.Remove(template);
                 _context.SaveChanges();
                 return new SuccessType();
             }
