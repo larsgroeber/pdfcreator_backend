@@ -3,6 +3,7 @@ using System.Linq;
 using API.Contexts;
 using API.Models;
 using GraphQL.Types;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Services
@@ -11,11 +12,13 @@ namespace API.Services
     {
         private readonly PDFCreatorContext _context;
         private readonly AuthService _authService;
+        private readonly DocumentService _documentService;
 
-        public TemplateService(PDFCreatorContext context, AuthService authService)
+        public TemplateService(PDFCreatorContext context, AuthService authService, DocumentService documentService)
         {
             _context = context;
             _authService = authService;
+            _documentService = documentService;
         }
 
         public object GetTemplate(ResolveFieldContext<object> context)
@@ -78,8 +81,6 @@ namespace API.Services
             {
                 CheckAuthenticationForTemplate(id);
 
-
-
                 //Template template = new Template {Id = id};
                 //_context.Templates.Attach(template);
                 Template template = _context.Templates.SingleOrDefault(_ => _.Id == id);
@@ -131,6 +132,29 @@ namespace API.Services
             }
         }
 
+        public void UploadTemplate(IFormFile file, int templateId)
+        {
+            CheckAuthenticationForTemplate(templateId);
+
+            Template template = GetTemplateById(templateId);
+
+            if (template != null)
+            {
+                string oldPath = template.Path;
+
+                string newPath = _documentService.SaveTemplate(file, templateId);
+                template.Path = newPath;
+                _context.SaveChanges();
+
+                if (oldPath != "")
+                {
+                    _documentService.DeleteTemplate(oldPath);
+                }
+                return;
+            }
+            throw new Exception($"Could not find template with id '{templateId}'!");
+        }
+
         private void CheckAuthenticationForTemplate(int id)
         {
             User user = GetUserWhoOwnsTemplate(id);
@@ -142,7 +166,7 @@ namespace API.Services
             else
             {
                 Console.WriteLine($"Template of id '{id}' has no user!");
-                _authService.CheckAuthentication(-1);
+                _authService.CheckAuthentication();
             }
         }
 
@@ -157,7 +181,7 @@ namespace API.Services
             else
             {
                 Console.WriteLine($"Template of id '{template.Id}' has no user!");
-                _authService.CheckAuthentication(-1);
+                _authService.CheckAuthentication();
             }
         }
 

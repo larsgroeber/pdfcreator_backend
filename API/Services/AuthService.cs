@@ -81,7 +81,7 @@ namespace API.Services
             return BCrypt.Net.BCrypt.HashPassword(password, 11);
         }
 
-        public void CheckAuthentication(int id, string role = "admin")
+        public void CheckAuthentication(int id = -1, string role = "admin")
         {
             if (User.Id != id && User.Role.Name != "admin" && User.Role.Name != role)
             {

@@ -34,6 +34,8 @@ namespace API
             services.AddTransient<RootMutation>();
             services.AddTransient<UserService>();
             services.AddTransient<TemplateService>();
+            services.AddTransient<DocumentService>();
+            services.AddTransient<LatexService>();
             services.AddScoped<AuthService>();
 
             services.AddCors();

@@ -11,37 +11,40 @@ namespace API.Controllers
     public class UploadTemplateController : Controller
     {
         private readonly AuthService _authService;
-        public UploadTemplateController(AuthService authService)
+        private readonly TemplateService _templateService;
+        public UploadTemplateController(AuthService authService, TemplateService templateService)
         {
             _authService = authService;
+            _templateService = templateService;
         }
 
         [HttpPost("{id}")]
         public IActionResult Index(List<IFormFile> template, int id)
         {
-            var authHeader = Request.Headers["Authorization"].ToString();
+            if (template.Count != 1)
+            {
+                return StatusCode(400);
+            }
+
+            string authHeader = Request.Headers["Authorization"].ToString();
             if (authHeader != "")
             {
                 var token = authHeader.Substring("Bearer ".Length).Trim();
-                Console.WriteLine(token);
+                // check token and authorization
                 try
                 {
                     _authService.CheckJwt(token);
+                    _templateService.UploadTemplate(template[0], id);
                 }
                 catch (UnauthorizedAccessException e)
                 {
                     Console.WriteLine(e);
                     return StatusCode(401);
                 }
-                Console.WriteLine(template.Count);
-                Console.WriteLine(template[0].FileName);
-                Console.WriteLine(id);
+
                 return new EmptyResult();
             }
-            else
-            {
-                return StatusCode(401);
-            }
+            return StatusCode(401);
         }
     }
 }
