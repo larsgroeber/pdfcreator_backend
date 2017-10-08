@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using Microsoft.Extensions.Configuration;
 
 namespace API.Services
@@ -13,10 +15,19 @@ namespace API.Services
 
         public void Compile(string directory)
         {
+            string mainFile = Path.Combine(directory, "main.tex");
+            string arguments = $"-halt-on-error -interaction=nonstopmode -output-directory {directory} {mainFile}";
+
             Process process = new Process();
             process.StartInfo.FileName = _latexCommand;
-            process.StartInfo.Arguments = directory;
+            process.StartInfo.Arguments = arguments;
             process.Start();
+            process.WaitForExit();
+
+            if (process.ExitCode != 0)
+            {
+                throw new Exception("An error occured while compiling the template!");
+            }
         }
     }
 }

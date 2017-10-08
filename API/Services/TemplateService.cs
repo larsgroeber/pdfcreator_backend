@@ -155,6 +155,23 @@ namespace API.Services
             throw new Exception($"Could not find template with id '{templateId}'!");
         }
 
+        public string Compile(ResolveFieldContext<Template> context)
+        {
+            int id = context.Source.Id;
+            try
+            {
+                CheckAuthenticationForTemplate(id);
+                Template template = GetTemplateById(id);
+
+                return _documentService.CompileTemplate(template.Path);
+            }
+            catch (Exception e)
+            {
+                HandleError(context, e);
+                return null;
+            }
+        }
+
         private void CheckAuthenticationForTemplate(int id)
         {
             User user = GetUserWhoOwnsTemplate(id);
@@ -185,8 +202,9 @@ namespace API.Services
             }
         }
 
-        private void HandleError(ResolveFieldContext<object> context, Exception e)
+        private void HandleError(dynamic context, Exception e)
         {
+            Console.WriteLine(e.ToString());
             GraphQlErrorService.AttachError(context, e);
         }
 
@@ -195,5 +213,7 @@ namespace API.Services
             return _context.Users.Include(_ => _.Templates)
                 .SingleOrDefault(_ => _.Templates.Any(t => t.Id == id));
         }
+
+
     }
 }
