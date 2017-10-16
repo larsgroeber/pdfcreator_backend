@@ -5,6 +5,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace API.Services
 {
@@ -12,16 +13,20 @@ namespace API.Services
     {
         private readonly string _templateDirectory;
         private readonly LatexService _latexService;
-        public DocumentService(IConfiguration configuration, LatexService latexService)
+        private readonly ILogger<DocumentService> _logger;
+        public DocumentService(IConfiguration configuration, LatexService latexService, ILogger<DocumentService> logger)
         {
             _templateDirectory = configuration["TemplateDirectory"];
             _latexService = latexService;
+            _logger = logger;
         }
 
         public string SaveTemplate(IFormFile templateFile, int id)
         {
             string directory = Path.Combine(_templateDirectory, id.ToString());
             string filePath = Path.Combine(directory, templateFile.FileName);
+
+            _logger.LogInformation($"Saving template with id {id} to {directory}.");
 
             Directory.CreateDirectory(directory);
 
@@ -47,16 +52,29 @@ namespace API.Services
             }
 
             string tmpDirectory = "/tmp/pdfcreator";
+
             Directory.CreateDirectory(tmpDirectory);
             string documentDirectory = Path.Combine(tmpDirectory, "test");
 
             // uncompress file to tmp directory
-            Directory.Delete(documentDirectory, true);
+            if (Directory.Exists(documentDirectory))
+            {
+                Directory.Delete(documentDirectory, true);
+            }
+
+            if (Path.GetExtension(compressedFile) != ".zip")
+            {
+                throw new Exception($"File {compressedFile} is not a zip file.");
+            }
+            _logger.LogInformation($"Extracting to {documentDirectory}.");
+
             ZipFile.ExtractToDirectory(compressedFile, documentDirectory);
 
             // replace template sequences in main.tex
 
             // start compilation
+            _logger.LogInformation($"Compiling template.");
+
             _latexService.Compile(documentDirectory);
 
             // convert to datauri
@@ -68,6 +86,9 @@ namespace API.Services
 
             var content = File.ReadAllBytes(pdf);
             string datauri = "data:application/pdf;base64," + Convert.ToBase64String(content);
+
+            _logger.LogInformation($"Deleting directory {documentDirectory}.");
+            Directory.Delete(documentDirectory, true);
 
             return datauri;
         }

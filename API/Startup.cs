@@ -38,7 +38,10 @@ namespace API
             services.AddTransient<LatexService>();
             services.AddScoped<AuthService>();
 
-            services.AddCors();
+            services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowCredentials()
+                .AllowAnyHeader()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,7 +52,7 @@ namespace API
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCors(builder => builder.AllowAnyOrigin());
+            app.UseCors("AllowAll");
 
             app.UseMvc();
         }

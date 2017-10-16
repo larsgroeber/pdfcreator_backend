@@ -21,6 +21,7 @@ namespace API.Controllers
         [HttpPost("{id}")]
         public IActionResult Index(List<IFormFile> template, int id)
         {
+            Console.WriteLine(template.Count);
             if (template.Count != 1)
             {
                 return StatusCode(400);
