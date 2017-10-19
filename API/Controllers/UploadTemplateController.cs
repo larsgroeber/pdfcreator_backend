@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
+using System.Text;
 using API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +21,10 @@ namespace API.Controllers
         }
 
         [HttpPost("{id}")]
-        public IActionResult Index(List<IFormFile> template, int id)
+        public IActionResult Index(List<IFormFile> file, int id)
         {
-            Console.WriteLine(template.Count);
-            if (template.Count != 1)
+            Console.WriteLine(file.Count);
+            if (file.Count != 1)
             {
                 return StatusCode(400);
             }
@@ -35,7 +37,7 @@ namespace API.Controllers
                 try
                 {
                     _authService.CheckJwt(token);
-                    _templateService.UploadTemplate(template[0], id);
+                    _templateService.UploadTemplate(file[0], id);
                 }
                 catch (UnauthorizedAccessException e)
                 {

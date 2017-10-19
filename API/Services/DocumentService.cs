@@ -26,6 +26,11 @@ namespace API.Services
             string directory = Path.Combine(_templateDirectory, id.ToString());
             string filePath = Path.Combine(directory, templateFile.FileName);
 
+            if (!IsZipFile(filePath))
+            {
+                throw new Exception($"File {filePath} is not a zip file.");
+            }
+
             _logger.LogInformation($"Saving template with id {id} to {directory}.");
 
             Directory.CreateDirectory(directory);
@@ -62,7 +67,7 @@ namespace API.Services
                 Directory.Delete(documentDirectory, true);
             }
 
-            if (Path.GetExtension(compressedFile) != ".zip")
+            if (!IsZipFile(compressedFile))
             {
                 throw new Exception($"File {compressedFile} is not a zip file.");
             }
@@ -91,6 +96,11 @@ namespace API.Services
             Directory.Delete(documentDirectory, true);
 
             return datauri;
+        }
+
+        private bool IsZipFile(string fileName)
+        {
+            return Path.GetExtension(fileName) == ".zip";
         }
     }
 }
