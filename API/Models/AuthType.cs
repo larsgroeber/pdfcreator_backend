@@ -14,10 +14,11 @@ namespace API.Queries
         public AuthType()
         {
             AuthService authService = ServiceProvider.GetService<AuthService>();
+            UserService userService = ServiceProvider.GetService<UserService>();
 
             Field<StringGraphType>("token", resolve: _ => authService.Token);
             Field<UserType>("user",
-                resolve: context => authService.User);
+                resolve: context => userService.GetActiveUserById(context, authService.User.Id));
         }
     }
 }

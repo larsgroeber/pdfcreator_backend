@@ -107,7 +107,7 @@ namespace API.Services
                 {
                     Name = name,
                     Description = description,
-                    Path = "Does not exist!"
+                    Path = ""
                 };
 
 

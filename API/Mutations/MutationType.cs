@@ -35,6 +35,7 @@ namespace API.Mutations
             Field<UserType>("addUser",
                 arguments: new QueryArguments(
                     new QueryArgument<StringGraphType> {Name = "username"},
+                    new QueryArgument<StringGraphType> {Name = "email"},
                     new QueryArgument<StringGraphType> {Name = "password"}),
                 resolve: userService.AddUser);
 
@@ -42,6 +43,7 @@ namespace API.Mutations
                 arguments: new QueryArguments(
                     new QueryArgument<IntGraphType> {Name = "id"},
                     new QueryArgument<StringGraphType> {Name = "username", DefaultValue = ""},
+                    new QueryArgument<StringGraphType> {Name = "email", DefaultValue = ""},
                     new QueryArgument<StringGraphType> {Name = "password", DefaultValue = ""},
                     new QueryArgument<StringGraphType> {Name = "role", DefaultValue = ""}),
                 resolve: userService.UpdateUser);

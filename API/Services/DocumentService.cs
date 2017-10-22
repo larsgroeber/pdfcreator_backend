@@ -92,8 +92,8 @@ namespace API.Services
             var content = File.ReadAllBytes(pdf);
             string datauri = "data:application/pdf;base64," + Convert.ToBase64String(content);
 
-            _logger.LogInformation($"Deleting directory {documentDirectory}.");
-            Directory.Delete(documentDirectory, true);
+//            _logger.LogInformation($"Deleting directory {documentDirectory}.");
+//            Directory.Delete(documentDirectory, true);
 
             return datauri;
         }
