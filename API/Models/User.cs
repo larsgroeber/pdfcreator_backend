@@ -15,6 +15,7 @@ namespace API.Models
         public string Email { get; set; }
         public List<Template> Templates { get; set; }
         public Role Role { get; set; }
+        public string ResetToken { get; set; }
 
         public override string ToString()
         {

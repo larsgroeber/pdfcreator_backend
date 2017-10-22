@@ -88,5 +88,11 @@ namespace API.Services
                 throw new UnauthorizedAccessException();
             }
         }
+
+        public static string GenerateRandomToken()
+        {
+            Guid g = Guid.NewGuid();
+            return Convert.ToBase64String(g.ToByteArray());
+        }
     }
 }

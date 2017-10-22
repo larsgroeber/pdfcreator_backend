@@ -3,21 +3,30 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Route("/api/v1/uploadTemplate")]
-    public class UploadTemplateController : Controller
+    [Route("/api/v1/document")]
+    public class TemplateDocumentController : Controller
     {
         private readonly AuthService _authService;
         private readonly TemplateService _templateService;
-        public UploadTemplateController(AuthService authService, TemplateService templateService)
+        public TemplateDocumentController(AuthService authService, TemplateService templateService)
         {
             _authService = authService;
             _templateService = templateService;
+        }
+
+        [HttpGet("{token}")]
+        public IActionResult Download(string templateToken)
+        {
+            Template template = _templateService.GetTemplateByToken(templateToken);
+
+            return File(new FileStream(template.Path, FileMode.Open), "application/zip");
         }
 
         [HttpPost("{id}")]

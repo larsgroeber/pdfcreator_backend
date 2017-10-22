@@ -11,9 +11,10 @@ using System;
 namespace API.Migrations
 {
     [DbContext(typeof(PDFCreatorContext))]
-    partial class PDFCreatorContextModelSnapshot : ModelSnapshot
+    [Migration("20171022210310_AddedResetTokenToUsers")]
+    partial class AddedResetTokenToUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

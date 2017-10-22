@@ -21,7 +21,7 @@ namespace API.Services
             _documentService = documentService;
         }
 
-        public object GetTemplate(ResolveFieldContext<object> context)
+        public Template GetTemplate(ResolveFieldContext<object> context)
         {
             int id = context.GetArgument<int>("id");
             try
@@ -42,7 +42,7 @@ namespace API.Services
             }
         }
 
-        private Template GetTemplateById(int id)
+        public Template GetTemplateById(int id)
         {
             return _context.Templates.SingleOrDefault(_ => _.Id == id);
         }
@@ -144,6 +144,7 @@ namespace API.Services
 
                 string newPath = _documentService.SaveTemplate(file, templateId);
                 template.Path = newPath;
+                template.DownloadToken = AuthService.GenerateRandomToken();
                 _context.SaveChanges();
 
                 if (oldPath != "")
@@ -215,5 +216,10 @@ namespace API.Services
         }
 
 
+        public Template GetTemplateByToken(string templateToken)
+        {
+            Template template = _context.Templates.SingleOrDefault(_ => _.DownloadToken == templateToken);
+            return template;
+        }
     }
 }
