@@ -1,5 +1,4 @@
-﻿using API.Services;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
 namespace API
@@ -9,8 +8,8 @@ namespace API
         public static void Main(string[] args)
         {
             // BuildWebHost(args).Run();
-            TemplateParseService t = new TemplateParseService();
-            t.GetFields("<$ Test $> not not <<Test2>>");
+            TemplateParser.TemplateParser t = new TemplateParser.TemplateParser();
+            t.GetInputFields("<$ Test $> not not <<Test2 ; Kommentar test test >>");
         }
 
         public static IWebHost BuildWebHost(string[] args) =>

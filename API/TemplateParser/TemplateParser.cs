@@ -5,42 +5,18 @@ using System.Text.RegularExpressions;
 using API.Models;
 using GraphQL;
 
-namespace API.Services
+namespace API.TemplateParser
 {
-    public struct Delimiters
+    public class TemplateParser
     {
-        public static readonly string PlaceholderLeft = "<<";
-        public static readonly string PlaceholderRight = ">>";
-        public static readonly string ExpressionLeft = "<=";
-        public static readonly string ExpressionRight = "=>";
-        public static readonly string VariableLeft = "<\\$";
-        public static readonly string VariableRight = "\\$>";
-    }
-
-    public struct Delimiter
-    {
-        public string Left;
-        public string Right;
-    }
-
-    public enum FieldType
-    {
-        Placeholder,
-        Expression,
-        Comment,
-        Variable
-    }
-
-    public class TemplateParseService
-    {
-        public List<TemplateField> GetFields(string template)
+        public List<TemplateField> GetInputFields(string template)
         {
             List<TemplateField> result = new List<TemplateField>();
 
 
             foreach (FieldType fieldType in new[] {FieldType.Placeholder, FieldType.Variable})
             {
-                result.AddRange(GetFieldsByType(template, fieldType).Map(s => new TemplateField {Name = s}));
+                result.AddRange(GetFieldsByType(template, fieldType));
             }
 
             foreach (var templateField in result)
@@ -50,17 +26,36 @@ namespace API.Services
             return new List<TemplateField>();
         }
 
-        private List<string> GetFieldsByType(string template, FieldType type)
+        private List<TemplateField> GetFieldsByType(string template, FieldType type)
         {
             Delimiter delimiter = GetDelimiter(type);
 
-            List<string> result = new List<string>();
+            List<TemplateField> result = new List<TemplateField>();
 
             foreach (Match match in GetMatches(template, delimiter))
             {
-                result.Add(Regex.Replace(match.Value, $"{delimiter.Left}|{delimiter.Right}", "").Trim());
+                string field = Regex.Replace(match.Value, $"{delimiter.Left}|{delimiter.Right}", "");
+                result.Add(ParseTemplateField(field));
             }
             return result;
+        }
+
+        private TemplateField ParseTemplateField(string field)
+        {
+            List<string> strings = new List<string>(field.Split(";").Map(s => s.Trim()));
+            TemplateField templateField = new TemplateField();
+
+            if (strings[0].Contains(" "))
+            {
+                throw new Exception($"Template content cannot contain spaces but '{strings[0]}' does!");
+            }
+
+            if (strings.Count > 1)
+            {
+                templateField.Comment = strings[1].Trim();
+            }
+            templateField.Content = strings[0].Trim();
+            return templateField;
         }
 
         private Delimiter GetDelimiter(FieldType type)

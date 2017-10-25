@@ -2,12 +2,12 @@
 {
     public class TemplateField
     {
-        public string Name { get; set; }
+        public string Content { get; set; }
         public string Comment { get; set; }
 
         public new string ToString()
         {
-            return $"TemplateField: Name = \"{Name}\", Comment = \"{Comment}\"";
+            return $"TemplateField: Name = \"{Content}\", Comment = \"{Comment}\"";
         }
     }
 }
