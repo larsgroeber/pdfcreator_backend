@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using API.Contexts;
 using API.Models;
 using GraphQL.Types;
@@ -156,20 +160,35 @@ namespace API.Services
             throw new Exception($"Could not find template with id '{templateId}'!");
         }
 
-        public string Compile(ResolveFieldContext<Template> context)
+        public Document Compile(ResolveFieldContext<Template> context)
         {
             int id = context.Source.Id;
+            string templateFieldsJson = context.GetArgument<string>("fields");
+
+            List<TemplateField> templateFields = new List<TemplateField>();
+            if (string.IsNullOrEmpty(templateFieldsJson))
+            {
+                templateFieldsJson = "[]";
+            }
+
             try
             {
                 CheckAuthenticationForTemplate(id);
+
+                Console.WriteLine(templateFieldsJson);
+
+                DataContractJsonSerializer ser = new DataContractJsonSerializer(templateFields.GetType());
+                templateFields = ser.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(templateFieldsJson)))
+                    as List<TemplateField>;
+
                 Template template = GetTemplateById(id);
 
-                return _documentService.CompileTemplate(template.Path);
+                return _documentService.CompileTemplate(template.Path, templateFields);
             }
             catch (Exception e)
             {
                 HandleError(context, e);
-                return null;
+                return new Document();
             }
         }
 

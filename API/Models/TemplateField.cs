@@ -4,6 +4,7 @@
     {
         public string Content { get; set; }
         public string Comment { get; set; }
+        public string Replacement { get; set; }
 
         public new string ToString()
         {

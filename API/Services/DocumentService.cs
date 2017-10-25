@@ -1,19 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace API.Services
 {
+    public struct Document
+    {
+        public string Template { get; set; }
+        public string DataUri { get; set; }
+        public List<TemplateField> TemplateFields { get; set; }
+    }
+
     public class DocumentService
     {
         private readonly string _templateDirectory;
         private readonly LatexService _latexService;
         private readonly ILogger<DocumentService> _logger;
+
         public DocumentService(IConfiguration configuration, LatexService latexService, ILogger<DocumentService> logger)
         {
             _templateDirectory = configuration["TemplateDirectory"];
@@ -49,33 +59,33 @@ namespace API.Services
             File.Delete(path);
         }
 
-        public string CompileTemplate(string compressedFile)
+        public Document CompileTemplate(string compressedFile, List<TemplateField> inputTemplateFields)
         {
+            Document document = new Document();
             if (compressedFile == "")
             {
-                return "";
+                return document;
             }
 
-            string tmpDirectory = "/tmp/pdfcreator";
-
-            Directory.CreateDirectory(tmpDirectory);
-            string documentDirectory = Path.Combine(tmpDirectory, "test");
+            string documentDirectory = CreateTmpDirector(compressedFile);
 
             // uncompress file to tmp directory
-            if (Directory.Exists(documentDirectory))
+            UncompressToDirectory(compressedFile, documentDirectory);
+
+            string pathToMainTex = documentDirectory + "/main.tex";
+
+            if (!File.Exists(pathToMainTex))
             {
-                Directory.Delete(documentDirectory, true);
+                throw new Exception("Cannot compile the document without a main.tex file!");
             }
 
-            if (!IsZipFile(compressedFile))
+            using (FileStream fileStream = new FileStream(pathToMainTex, FileMode.Open))
             {
-                throw new Exception($"File {compressedFile} is not a zip file.");
+                document.Template = File.ReadAllText(pathToMainTex);
+                TemplateParser.TemplateParser templateParser = new TemplateParser.TemplateParser();
+                document.TemplateFields = templateParser.GetInputFields(document.Template);
+                // TODO replace template sequences
             }
-            _logger.LogInformation($"Extracting to {documentDirectory}.");
-
-            ZipFile.ExtractToDirectory(compressedFile, documentDirectory);
-
-            // replace template sequences in main.tex
 
             // start compilation
             _logger.LogInformation($"Compiling template.");
@@ -90,12 +100,37 @@ namespace API.Services
             }
 
             var content = File.ReadAllBytes(pdf);
-            string datauri = "data:application/pdf;base64," + Convert.ToBase64String(content);
+            document.DataUri = "data:application/pdf;base64," + Convert.ToBase64String(content);
 
 //            _logger.LogInformation($"Deleting directory {documentDirectory}.");
 //            Directory.Delete(documentDirectory, true);
 
-            return datauri;
+            return document;
+        }
+
+        private void UncompressToDirectory(string compressedFile, string documentDirectory)
+        {
+            if (Directory.Exists(documentDirectory))
+            {
+                Directory.Delete(documentDirectory, true);
+            }
+
+            if (!IsZipFile(compressedFile))
+            {
+                throw new Exception($"File {compressedFile} is not a zip file.");
+            }
+            _logger.LogInformation($"Extracting to {documentDirectory}.");
+
+            ZipFile.ExtractToDirectory(compressedFile, documentDirectory);
+        }
+
+        private string CreateTmpDirector(string compressedFile)
+        {
+            string tmpDirectory = "/tmp/pdfcreator";
+
+            Directory.CreateDirectory(tmpDirectory);
+            // TODO add templatename/id here
+            return Path.Combine(tmpDirectory, "test");
         }
 
         private bool IsZipFile(string fileName)

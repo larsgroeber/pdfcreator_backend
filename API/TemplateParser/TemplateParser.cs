@@ -23,7 +23,7 @@ namespace API.TemplateParser
             {
                 Console.WriteLine(templateField.ToString());
             }
-            return new List<TemplateField>();
+            return result;
         }
 
         private List<TemplateField> GetFieldsByType(string template, FieldType type)
