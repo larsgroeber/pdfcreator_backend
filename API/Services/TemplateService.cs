@@ -175,8 +175,6 @@ namespace API.Services
             {
                 CheckAuthenticationForTemplate(id);
 
-                Console.WriteLine(templateFieldsJson);
-
                 DataContractJsonSerializer ser = new DataContractJsonSerializer(templateFields.GetType());
                 templateFields = ser.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(templateFieldsJson)))
                     as List<TemplateField>;
