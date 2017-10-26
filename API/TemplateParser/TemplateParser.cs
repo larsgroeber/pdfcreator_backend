@@ -26,6 +26,27 @@ namespace API.TemplateParser
             return result;
         }
 
+        public string ReplaceFields(string template, List<TemplateField> templateFields)
+        {
+            string resultTemplate = template;
+            foreach (TemplateField templateField in GetFieldsByType(resultTemplate, FieldType.Placeholder))
+            {
+                Console.WriteLine(templateField.ToString());
+                TemplateField replacementField = templateFields.Find(_ => _.Content == templateField.Content);
+                Console.WriteLine(replacementField.ToString());
+                if (replacementField?.Replacement != null)
+                {
+                    Console.WriteLine(replacementField.ToString());
+                    Delimiter delimiter = GetDelimiter(FieldType.Placeholder);
+                    resultTemplate = Regex.Replace(
+                        resultTemplate,
+                        $"{delimiter.Left} *{templateField.Content} *(; *.*)? *{delimiter.Right}",
+                        replacementField.Replacement);
+                }
+            }
+            return resultTemplate;
+        }
+
         private List<TemplateField> GetFieldsByType(string template, FieldType type)
         {
             Delimiter delimiter = GetDelimiter(type);

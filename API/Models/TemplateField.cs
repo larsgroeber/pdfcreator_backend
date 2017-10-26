@@ -8,7 +8,7 @@
 
         public new string ToString()
         {
-            return $"TemplateField: Name = \"{Content}\", Comment = \"{Comment}\", Replacement = \"{Replacement}\"";
+            return $"TemplateField: Content = \"{Content}\", Comment = \"{Comment}\", Replacement = \"{Replacement}\"";
         }
     }
 }

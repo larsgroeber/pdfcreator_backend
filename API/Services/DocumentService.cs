@@ -79,12 +79,16 @@ namespace API.Services
                 throw new Exception("Cannot compile the document without a main.tex file!");
             }
 
-            using (FileStream fileStream = new FileStream(pathToMainTex, FileMode.Open))
             {
                 document.Template = File.ReadAllText(pathToMainTex);
+                Console.WriteLine(document.Template);
                 TemplateParser.TemplateParser templateParser = new TemplateParser.TemplateParser();
                 document.TemplateFields = templateParser.GetInputFields(document.Template);
-                // TODO replace template sequences
+
+                _logger.LogInformation("Replacing template fields");
+                document.Template = templateParser.ReplaceFields(document.Template, document.TemplateFields);
+                File.WriteAllText(pathToMainTex, document.Template);
+                Console.WriteLine(document.Template);
             }
 
             // start compilation
