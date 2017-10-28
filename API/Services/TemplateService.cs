@@ -65,7 +65,7 @@ namespace API.Services
                 {
                     CheckAuthenticationForTemplate(template.Id);
                     template.Name = name != "" ? name : template.Name;
-                    template.Description = description != "" ? description : template.Description;
+                    template.Description = description;
                     _context.SaveChanges();
                     return template;
                 }

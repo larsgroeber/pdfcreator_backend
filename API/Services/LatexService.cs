@@ -21,6 +21,7 @@ namespace API.Services
             Process process = new Process();
             process.StartInfo.FileName = _latexCommand;
             process.StartInfo.Arguments = arguments;
+            process.StartInfo.WorkingDirectory = directory;
             process.Start();
             process.WaitForExit();
 
