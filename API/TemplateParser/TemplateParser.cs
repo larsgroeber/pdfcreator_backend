@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using API.Models;
@@ -13,41 +14,39 @@ namespace API.TemplateParser
         {
             List<TemplateField> result = new List<TemplateField>();
 
-
             foreach (FieldType fieldType in new[] {FieldType.Placeholder, FieldType.Variable})
             {
                 result.AddRange(GetFieldsByType(template, fieldType));
             }
 
-            foreach (var templateField in result)
-            {
-                Console.WriteLine(templateField.ToString());
-            }
             return result;
         }
 
-        public string ReplaceFields(string template, List<TemplateField> templateFields)
+        public string ReplacePlaceholderFields(string template, List<TemplateField> templateFields)
         {
             string resultTemplate = template;
-            foreach (TemplateField templateField in GetFieldsByType(resultTemplate, FieldType.Placeholder))
+            foreach (TemplateField templateField in GetFieldsByType(template, FieldType.Placeholder))
             {
-                Console.WriteLine(templateField.ToString());
                 TemplateField replacementField = templateFields.Find(_ => _.Content == templateField.Content);
-                Console.WriteLine(replacementField.ToString());
+
                 if (replacementField?.Replacement != null)
                 {
-                    Console.WriteLine(replacementField.ToString());
-                    Delimiter delimiter = GetDelimiter(FieldType.Placeholder);
-                    resultTemplate = Regex.Replace(
-                        resultTemplate,
-                        $"{delimiter.Left} *{templateField.Content} *(; *.*)? *{delimiter.Right}",
-                        replacementField.Replacement);
+                    resultTemplate = ReplaceField(template, replacementField, FieldType.Placeholder);
                 }
             }
             return resultTemplate;
         }
 
-        private List<TemplateField> GetFieldsByType(string template, FieldType type)
+        public string ReplaceField(string template, TemplateField replacementField, FieldType type)
+        {
+            Delimiter delimiter = GetDelimiter(type);
+            return Regex.Replace(
+                template,
+                $"{delimiter.Left} *{replacementField.Content} *(; *.*)? *{delimiter.Right}",
+                replacementField.Replacement);
+        }
+
+        public List<TemplateField> GetFieldsByType(string template, FieldType type)
         {
             Delimiter delimiter = GetDelimiter(type);
 
@@ -56,17 +55,17 @@ namespace API.TemplateParser
             foreach (Match match in GetMatches(template, delimiter))
             {
                 string field = Regex.Replace(match.Value, $"{delimiter.Left}|{delimiter.Right}", "");
-                result.Add(ParseTemplateField(field));
+                result.Add(ParseTemplateField(field, type));
             }
             return result;
         }
 
-        private TemplateField ParseTemplateField(string field)
+        private TemplateField ParseTemplateField(string field, FieldType type)
         {
             List<string> strings = new List<string>(field.Split(";").Map(s => s.Trim()));
             TemplateField templateField = new TemplateField();
 
-            if (strings[0].Contains(" "))
+            if (type != FieldType.Expression && strings[0].Contains(" "))
             {
                 throw new Exception($"Template content cannot contain spaces but '{strings[0]}' does!");
             }
@@ -97,6 +96,10 @@ namespace API.TemplateParser
                     del.Left = Delimiters.VariableLeft;
                     del.Right = Delimiters.VariableRight;
                     break;
+                case FieldType.Comment:
+                    del.Left = Delimiters.CommentLeft;
+                    del.Right = Delimiters.CommentRight;
+                    break;
                 default:
                     throw new Exception($"Field type {type.ToString()} is not supported!");
             }
@@ -106,6 +109,16 @@ namespace API.TemplateParser
         private MatchCollection GetMatches(string template, Delimiter delimiter)
         {
             return Regex.Matches(template, $"{delimiter.Left}(.*?){delimiter.Right}");
+        }
+
+        public string DeleteCommentsAndVariables(string template)
+        {
+            foreach (FieldType fieldType in new[] {FieldType.Comment, FieldType.Variable})
+            {
+                Delimiter delimiter = GetDelimiter(fieldType);
+                template = Regex.Replace(template, $"{delimiter.Left}.*{delimiter.Right}", String.Empty);
+            }
+            return template;
         }
     }
 }

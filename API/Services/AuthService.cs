@@ -29,7 +29,7 @@ namespace API.Services
         }
 
 
-        public string Authorize(string username, string password)
+        public void Authorize(string username, string password)
         {
             IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
             IJsonSerializer serializer = new JsonNetSerializer();
@@ -42,7 +42,7 @@ namespace API.Services
             {
                 string token = encoder.Encode(User, _secret);
                 Token = token;
-                return token;
+                return;
             }
             throw new UnauthorizedAccessException("Credentials incorrect!");
         }

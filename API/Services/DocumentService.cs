@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using API.Models;
+using API.TemplateParser;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -61,6 +62,8 @@ namespace API.Services
 
         public Document CompileTemplate(string compressedFile, List<TemplateField> inputTemplateFields)
         {
+            // TODO put this into a separate class
+
             Document document = new Document();
             if (compressedFile == "")
             {
@@ -81,14 +84,20 @@ namespace API.Services
 
             {
                 document.Template = File.ReadAllText(pathToMainTex);
-                Console.WriteLine(document.Template);
+
+                // TODO replace templateFields with inputTemplateFields where appropriate
                 TemplateParser.TemplateParser templateParser = new TemplateParser.TemplateParser();
                 document.TemplateFields = templateParser.GetInputFields(document.Template);
 
-                _logger.LogInformation("Replacing template fields");
-                document.Template = templateParser.ReplaceFields(document.Template, document.TemplateFields);
-                File.WriteAllText(pathToMainTex, document.Template);
-                Console.WriteLine(document.Template);
+                if (inputTemplateFields.Count > 0)
+                {
+                    _logger.LogInformation("Replacing template fields");
+                    TemplateAssembler templateAssembler = new TemplateAssembler(document.Template);
+                    document.Template = templateAssembler.Assemble(inputTemplateFields);
+                    File.WriteAllText(pathToMainTex, document.Template);
+                }
+
+                Console.WriteLine("After parsing:\n" + document.Template);
             }
 
             // start compilation

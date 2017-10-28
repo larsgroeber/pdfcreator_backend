@@ -9,20 +9,30 @@ namespace API.Models
     {
         internal static IServiceProvider ServiceProvider;
         private Document _document;
+        private TemplateService _templateService;
+
 
         public TemplateType()
         {
-            var templateService = ServiceProvider.GetService<TemplateService>();
+            _templateService = ServiceProvider.GetService<TemplateService>();
 
             Field(_ => _.Id);
             Field(_ => _.Name);
             Field(_ => _.Description);
             Field<StringGraphType>("document",
                 arguments: new QueryArguments(new QueryArgument<StringGraphType> { Name = "fields", DefaultValue = ""}),
-                resolve: ctx => templateService.Compile(ctx).DataUri);
-            // TODO no second Compiling
+                resolve: ctx => GetDocument(ctx).DataUri);
             Field<StringGraphType>("fields",
-                resolve: ctx => templateService.Compile(ctx).TemplateFields);
+                resolve: ctx => GetDocument(ctx).TemplateFields);
+        }
+
+        private Document GetDocument(ResolveFieldContext<Template> ctx)
+        {
+            if (_document.Template == null)
+            {
+                _document = _templateService.Compile(ctx);
+            }
+            return _document;
         }
     }
 }

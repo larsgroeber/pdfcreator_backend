@@ -8,6 +8,8 @@
         public static readonly string ExpressionRight = "=>";
         public static readonly string VariableLeft = "<\\$";
         public static readonly string VariableRight = "\\$>";
+        public static readonly string CommentLeft = "<\\/\\/";
+        public static readonly string CommentRight = "\\/\\/>";
     }
 
     public struct Delimiter
