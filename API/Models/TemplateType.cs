@@ -20,7 +20,8 @@ namespace API.Models
             Field(_ => _.Name);
             Field(_ => _.Description);
             Field<StringGraphType>("document",
-                arguments: new QueryArguments(new QueryArgument<StringGraphType> { Name = "fields", DefaultValue = ""}),
+                arguments: new QueryArguments(new QueryArgument<StringGraphType> { Name = "fields", DefaultValue = ""},
+                    new QueryArgument<StringGraphType> { Name = "multiple", DefaultValue = false}),
                 resolve: ctx => GetDocument(ctx).DataUri);
             Field<StringGraphType>("fields",
                 resolve: ctx => GetDocument(ctx).TemplateFields);

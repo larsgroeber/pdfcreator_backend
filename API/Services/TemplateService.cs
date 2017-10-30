@@ -165,7 +165,6 @@ namespace API.Services
             int id = context.Source.Id;
             string templateFieldsJson = context.GetArgument<string>("fields");
 
-            List<TemplateField> templateFields = new List<TemplateField>();
             if (string.IsNullOrEmpty(templateFieldsJson))
             {
                 templateFieldsJson = "[]";
@@ -175,13 +174,22 @@ namespace API.Services
             {
                 CheckAuthenticationForTemplate(id);
 
-                DataContractJsonSerializer ser = new DataContractJsonSerializer(templateFields.GetType());
-                templateFields = ser.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(templateFieldsJson)))
-                    as List<TemplateField>;
-
                 Template template = GetTemplateById(id);
 
-                return _documentService.CompileTemplate(template.Path, templateFields);
+                List<List<TemplateField>> templateFields = new List<List<TemplateField>>();
+                DataContractJsonSerializer ser = new DataContractJsonSerializer(templateFields.GetType());
+                templateFields = ser.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(templateFieldsJson)))
+                    as List<List<TemplateField>>;
+
+                if (templateFields?.Count > 1)
+                {
+                    return _documentService.CompileTemplate(template, templateFields);
+                }
+                if (templateFields?.Count == 1)
+                {
+                    return _documentService.CompileTemplate(template, templateFields[0]);
+                }
+                return _documentService.CompileTemplate(template, new List<TemplateField>());
             }
             catch (Exception e)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Text;
 using API.Contexts;
 using API.Models;
 using API.Mutations;
@@ -36,12 +37,15 @@ namespace API
             services.AddTransient<TemplateService>();
             services.AddTransient<DocumentService>();
             services.AddTransient<LatexService>();
+            services.AddTransient<CompileService>();
             services.AddScoped<AuthService>();
 
             services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowCredentials()
                 .AllowAnyHeader()));
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

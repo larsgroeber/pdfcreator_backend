@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using API.Models;
@@ -16,19 +17,22 @@ namespace API.Services
     {
         public string Template { get; set; }
         public string DataUri { get; set; }
+        public string pdfPath { get; set; }
         public List<TemplateField> TemplateFields { get; set; }
     }
 
     public class DocumentService
     {
         private readonly string _templateDirectory;
-        private readonly LatexService _latexService;
+        private readonly CompileService _compileService;
         private readonly ILogger<DocumentService> _logger;
 
-        public DocumentService(IConfiguration configuration, LatexService latexService, ILogger<DocumentService> logger)
+        public DocumentService(IConfiguration configuration,
+            ILogger<DocumentService> logger,
+            CompileService compileService)
         {
             _templateDirectory = configuration["TemplateDirectory"];
-            _latexService = latexService;
+            _compileService = compileService;
             _logger = logger;
         }
 
@@ -37,7 +41,7 @@ namespace API.Services
             string directory = Path.Combine(_templateDirectory, id.ToString());
             string filePath = Path.Combine(directory, templateFile.FileName);
 
-            if (!IsZipFile(filePath))
+            if (!CompileService.IsZipFile(filePath))
             {
                 throw new Exception($"File {filePath} is not a zip file.");
             }
@@ -60,95 +64,36 @@ namespace API.Services
             File.Delete(path);
         }
 
-        public Document CompileTemplate(string compressedFile, List<TemplateField> inputTemplateFields)
+        public Document CompileTemplate(Template template, List<TemplateField> inputTemplateFields)
         {
-            // TODO put this into a separate class
+            return CompileSingle(template, inputTemplateFields);
+        }
 
+        public Document CompileTemplate(Template template, List<List<TemplateField>> inputTemplateFields)
+        {
+            return CompileMultiple(template, inputTemplateFields);
+        }
+
+        private Document CompileSingle(Template template, List<TemplateField> inputTemplateFields)
+        {
             Document document = new Document();
-            if (compressedFile == "")
+            if (template.Path == "")
             {
                 return document;
             }
 
-            string documentDirectory = CreateTmpDirector(compressedFile);
-
-            // uncompress file to tmp directory
-            UncompressToDirectory(compressedFile, documentDirectory);
-
-            string pathToMainTex = documentDirectory + "/main.tex";
-
-            if (!File.Exists(pathToMainTex))
-            {
-                throw new Exception("Cannot compile the document without a main.tex file!");
-            }
-
-            {
-                document.Template = File.ReadAllText(pathToMainTex);
-
-                // TODO replace templateFields with inputTemplateFields where appropriate
-                TemplateParser.TemplateParser templateParser = new TemplateParser.TemplateParser();
-                document.TemplateFields = templateParser.GetInputFields(document.Template);
-
-                if (inputTemplateFields.Count > 0)
-                {
-                    _logger.LogInformation("Replacing template fields");
-                    TemplateAssembler templateAssembler = new TemplateAssembler(document.Template);
-                    document.Template = templateAssembler.Assemble(inputTemplateFields);
-                    File.WriteAllText(pathToMainTex, document.Template);
-                }
-
-                Console.WriteLine("After parsing:\n" + document.Template);
-            }
-
-            // start compilation
-            _logger.LogInformation($"Compiling template.");
-
-            _latexService.Compile(documentDirectory);
-
-            // convert to datauri
-            string pdf = Path.Combine(documentDirectory, "main.pdf");
-            if (!File.Exists(pdf))
-            {
-                throw new Exception($"File {pdf} does not exist!");
-            }
-
-            var content = File.ReadAllBytes(pdf);
-            document.DataUri = "data:application/pdf;base64," + Convert.ToBase64String(content);
-
-//            _logger.LogInformation($"Deleting directory {documentDirectory}.");
-//            Directory.Delete(documentDirectory, true);
-
-            return document;
+            return _compileService.CompileSingle(template, inputTemplateFields);
         }
 
-        private void UncompressToDirectory(string compressedFile, string documentDirectory)
+        private Document CompileMultiple(Template template, List<List<TemplateField>> inputTemplateFields)
         {
-            if (Directory.Exists(documentDirectory))
+            Document document = new Document();
+            if (template.Path == "")
             {
-                Directory.Delete(documentDirectory, true);
+                return document;
             }
 
-            if (!IsZipFile(compressedFile))
-            {
-                throw new Exception($"File {compressedFile} is not a zip file.");
-            }
-            _logger.LogInformation($"Extracting to {documentDirectory}.");
-
-            ZipFile.ExtractToDirectory(compressedFile, documentDirectory);
-        }
-
-        private string CreateTmpDirector(string compressedFile)
-        {
-            string tmpDirectory = "/tmp/pdfcreator";
-
-            Directory.CreateDirectory(tmpDirectory);
-            // TODO add templatename/id here
-            return Path.Combine(tmpDirectory, "test");
-        }
-
-        private bool IsZipFile(string fileName)
-        {
-            return Path.GetExtension(fileName) == ".zip";
+            return _compileService.CompileMultiple(template, inputTemplateFields);
         }
     }
 }
