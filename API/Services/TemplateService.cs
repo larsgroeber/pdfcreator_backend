@@ -41,7 +41,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return null;
             }
         }
@@ -73,7 +73,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return null;
             }
         }
@@ -94,7 +94,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return null;
             }
         }
@@ -131,7 +131,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return null;
             }
         }
@@ -151,7 +151,7 @@ namespace API.Services
                 template.DownloadToken = AuthService.GenerateRandomToken();
                 _context.SaveChanges();
 
-                if (oldPath != "")
+                if (oldPath != "" && oldPath != newPath)
                 {
                     _documentService.DeleteTemplate(oldPath);
                 }
@@ -193,7 +193,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return new Document();
             }
         }
@@ -228,10 +228,10 @@ namespace API.Services
             }
         }
 
-        private void HandleError(dynamic context, Exception e)
+        private void HandleError(Exception e)
         {
             Console.WriteLine(e.ToString());
-            GraphQlErrorService.AttachError(context, e);
+            GraphQlErrorService.Add(e);
         }
 
         private User GetUserWhoOwnsTemplate(int id)

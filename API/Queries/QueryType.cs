@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Linq;
 using API.Contexts;
+using API.Models;
 using API.Services;
 using GraphQL.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace API.Models
+namespace API.Queries
 {
     public class QueryType : ObjectGraphType
     {

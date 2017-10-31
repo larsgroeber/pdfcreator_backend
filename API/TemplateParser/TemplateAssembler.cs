@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using API.Models;
+using API.Services;
 
 namespace API.TemplateParser
 {
@@ -18,19 +21,32 @@ namespace API.TemplateParser
             ExpressionParser expressionParser = new ExpressionParser();
 
             var expressionFields = templateParser.GetFieldsByType(_template, FieldType.Expression);
-
             string finalTemplate = _template;
 
             foreach (TemplateField expressionField in expressionFields)
             {
-                expressionField.Replacement = expressionParser.Parse(expressionField.Content, inputFields);
-                finalTemplate = templateParser.ReplaceField(finalTemplate, expressionField, FieldType.Expression);
+                try
+                {
+                    expressionField.Replacement = expressionParser.Parse(expressionField.Content, inputFields);
+                    expressionField.Content = EscapeRegex(expressionField.Content);
+                    finalTemplate = templateParser.ReplaceField(finalTemplate, expressionField, FieldType.Expression);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    GraphQlErrorService.Add(e);
+                }
             }
 
             finalTemplate = templateParser.ReplacePlaceholderFields(finalTemplate, inputFields);
             finalTemplate = templateParser.DeleteCommentsAndVariables(finalTemplate);
 
             return finalTemplate;
+        }
+
+        public static string EscapeRegex(string str)
+        {
+            return Regex.Escape(str);
         }
     }
 }

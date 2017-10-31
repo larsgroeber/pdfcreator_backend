@@ -8,28 +8,28 @@ namespace API.Queries
 {
     public class RootQuery : ObjectGraphType
     {
-
         public RootQuery(AuthService authService)
         {
             Field<QueryType>("query",
                 arguments: new QueryArguments(new QueryArgument<StringGraphType> {Name = "token", DefaultValue = ""}),
                 resolve: context =>
                 {
+                    GraphQlErrorService.Context = context;
                     string token = context.GetArgument<string>("token");
 
-                    if (token != "")
+                    try
                     {
-                        try
+                        if (token != "")
                         {
                             authService.CheckJwt(token);
                         }
-                        catch (UnauthorizedAccessException e)
-                        {
-                            context.Errors.Add(new ExecutionError(e.ToString()));
-                        }
+                        return new QueryType();
                     }
-
-                    return new QueryType();
+                    catch (Exception e)
+                    {
+                        GraphQlErrorService.AttachError(context, e);
+                        return null;
+                    }
                 });
         }
     }

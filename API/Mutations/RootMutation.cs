@@ -16,6 +16,7 @@ namespace API.Mutations
                 arguments: new QueryArguments(new QueryArgument<StringGraphType> {Name = "token", DefaultValue = ""}),
                 resolve: context =>
                 {
+                    GraphQlErrorService.Context = context;
                     string token = context.GetArgument<string>("token");
 
                     try

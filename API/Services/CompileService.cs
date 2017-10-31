@@ -33,7 +33,15 @@ namespace API.Services
             return document;
         }
 
-        private Document CompileDocument(Template template, List<TemplateField> inputTemplateFields, string documentDirectory)
+        private string CreateTmpDirectory()
+        {
+            string tmpDirectory = "/tmp/pdfcreator";
+            Directory.CreateDirectory(tmpDirectory);
+            return tmpDirectory;
+        }
+
+        private Document CompileDocument(Template template, List<TemplateField> inputTemplateFields,
+            string documentDirectory)
         {
             Document document = new Document();
 
@@ -47,7 +55,24 @@ namespace API.Services
             return document;
         }
 
-        private void AssembleDocument(string documentDirectory, List<TemplateField> inputTemplateFields, ref Document document)
+        private void UncompressToDirectory(string compressedFile, string documentDirectory)
+        {
+            if (Directory.Exists(documentDirectory))
+            {
+                Directory.Delete(documentDirectory, true);
+            }
+
+            if (!IsZipFile(compressedFile))
+            {
+                throw new Exception($"File {compressedFile} is not a zip file.");
+            }
+            _logger.LogInformation($"Extracting to {documentDirectory}.");
+
+            ZipFile.ExtractToDirectory(compressedFile, documentDirectory);
+        }
+
+        private void AssembleDocument(string documentDirectory, List<TemplateField> inputTemplateFields,
+            ref Document document)
         {
             string pathToMainTex = documentDirectory + "/main.tex";
 
@@ -59,6 +84,7 @@ namespace API.Services
             document.Template = File.ReadAllText(pathToMainTex);
 
             TemplateParser.TemplateParser templateParser = new TemplateParser.TemplateParser();
+
             // Concat inputTemplateFields with parsed templateFields and choose the ones where
             // replacement is filled
             document.TemplateFields = templateParser.GetInputFields(document.Template)
@@ -112,29 +138,6 @@ namespace API.Services
             return document;
         }
 
-        private void UncompressToDirectory(string compressedFile, string documentDirectory)
-        {
-            if (Directory.Exists(documentDirectory))
-            {
-                Directory.Delete(documentDirectory, true);
-            }
-
-            if (!IsZipFile(compressedFile))
-            {
-                throw new Exception($"File {compressedFile} is not a zip file.");
-            }
-            _logger.LogInformation($"Extracting to {documentDirectory}.");
-
-            ZipFile.ExtractToDirectory(compressedFile, documentDirectory);
-        }
-
-        private string CreateTmpDirectory()
-        {
-            string tmpDirectory = "/tmp/pdfcreator";
-            Directory.CreateDirectory(tmpDirectory);
-            return tmpDirectory;
-        }
-
         public static bool IsZipFile(string fileName)
         {
             return Path.GetExtension(fileName) == ".zip";
@@ -143,10 +146,7 @@ namespace API.Services
         private PdfDocument ConcatPdFs(List<string> pdfPaths)
         {
             PdfDocument pdfDocument = new PdfDocument();
-            pdfPaths.ForEach(path =>
-            {
-                CopyPages(PdfReader.Open(path, PdfDocumentOpenMode.Import), pdfDocument);
-            });
+            pdfPaths.ForEach(path => { CopyPages(PdfReader.Open(path, PdfDocumentOpenMode.Import), pdfDocument); });
             return pdfDocument;
         }
 
