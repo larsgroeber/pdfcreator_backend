@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using API.Models;
 using DynamicExpresso;
@@ -13,6 +14,11 @@ namespace API.TemplateParser
 
         public string Parse(string expressionFieldContent, List<TemplateField> inputFields)
         {
+            if (inputFields.All(_ => String.IsNullOrEmpty(_.Replacement)))
+            {
+                return expressionFieldContent;
+            }
+
             string expression = ReplaceVariables(expressionFieldContent, inputFields);
 
             var engine = new Interpreter();

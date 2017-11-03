@@ -19,6 +19,35 @@ namespace API.Services
             _authService = authService;
         }
 
+        public string GetUserToken(string name, string email)
+        {
+            User user = _context.Users.SingleOrDefault(_ => _.Name == name && _.Email == email);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            user.ResetToken = AuthService.GenerateRandomToken();
+            _context.SaveChanges();
+            return user.ResetToken;
+        }
+
+        public string ResetPassword(string token, string newPassword)
+        {
+            User user = _context.Users.SingleOrDefault(_ => _.ResetToken == token);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            user.Password = AuthService.HashPassword(newPassword);
+            user.ResetToken = "";
+            _context.SaveChanges();
+            return "OK";
+        }
+
         public User GetUser(ResolveFieldContext<object> context)
         {
             int id = context.GetArgument<int>("id");
