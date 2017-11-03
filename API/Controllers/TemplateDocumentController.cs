@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using API.Models;
 using API.Services;
@@ -22,11 +24,15 @@ namespace API.Controllers
         }
 
         [HttpGet("{token}")]
-        public IActionResult Download(string templateToken)
+        public IActionResult Download(string token)
         {
-            Template template = _templateService.GetTemplateByToken(templateToken);
+            Template template = _templateService.GetTemplateByToken(token);
+            if (template == null)
+            {
+                return StatusCode(404);
+            }
 
-            return File(new FileStream(template.Path, FileMode.Open), "application/zip");
+            return File(new FileStream(template.Path, FileMode.Open), "application/zip", template.Name + ".zip");
         }
 
         [HttpPost("{id}")]

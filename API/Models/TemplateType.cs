@@ -19,6 +19,7 @@ namespace API.Models
             Field(_ => _.Id);
             Field(_ => _.Name);
             Field(_ => _.Description);
+            Field("token", _ => _.DownloadToken ?? "");
             Field<StringGraphType>("document",
                 arguments: new QueryArguments(new QueryArgument<StringGraphType> {Name = "fields", DefaultValue = ""},
                     new QueryArgument<StringGraphType> {Name = "multiple", DefaultValue = false}),

@@ -92,7 +92,7 @@ namespace API.Services
         public static string GenerateRandomToken()
         {
             Guid g = Guid.NewGuid();
-            return Convert.ToBase64String(g.ToByteArray());
+            return Convert.ToBase64String(g.ToByteArray()).Replace('/', '_');
         }
     }
 }
