@@ -31,7 +31,7 @@ namespace API.TemplateParser
 
                 if (replacementField?.Replacement != null)
                 {
-                    resultTemplate = ReplaceField(template, replacementField, FieldType.Placeholder);
+                    resultTemplate = ReplaceField(resultTemplate, replacementField, FieldType.Placeholder);
                 }
             }
             return resultTemplate;
