@@ -11,6 +11,7 @@ namespace API.Models
 
             Field(_ => _.Id);
             Field(_ => _.Name);
+            Field(_ => _.Email);
             Field<ListGraphType<TemplateType>>("templates");
             Field<TemplateType>("template",
                 arguments: new QueryArguments(new QueryArgument<IntGraphType> { Name = "id"}),

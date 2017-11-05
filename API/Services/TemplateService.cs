@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using API.Contexts;
 using API.Models;
 using GraphQL.Types;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Services
@@ -11,14 +16,16 @@ namespace API.Services
     {
         private readonly PDFCreatorContext _context;
         private readonly AuthService _authService;
+        private readonly DocumentService _documentService;
 
-        public TemplateService(PDFCreatorContext context, AuthService authService)
+        public TemplateService(PDFCreatorContext context, AuthService authService, DocumentService documentService)
         {
             _context = context;
             _authService = authService;
+            _documentService = documentService;
         }
 
-        public object GetTemplate(ResolveFieldContext<object> context)
+        public Template GetTemplate(ResolveFieldContext<object> context)
         {
             int id = context.GetArgument<int>("id");
             try
@@ -34,12 +41,12 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return null;
             }
         }
 
-        private Template GetTemplateById(int id)
+        public Template GetTemplateById(int id)
         {
             return _context.Templates.SingleOrDefault(_ => _.Id == id);
         }
@@ -58,7 +65,7 @@ namespace API.Services
                 {
                     CheckAuthenticationForTemplate(template.Id);
                     template.Name = name != "" ? name : template.Name;
-                    template.Description = description != "" ? description : template.Description;
+                    template.Description = description;
                     _context.SaveChanges();
                     return template;
                 }
@@ -66,7 +73,7 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return null;
             }
         }
@@ -78,15 +85,16 @@ namespace API.Services
             {
                 CheckAuthenticationForTemplate(id);
 
-                Template template = new Template {Id = id};
-                _context.Templates.Attach(template);
-                _context.Templates.Remove(template);
+                //Template template = new Template {Id = id};
+                //_context.Templates.Attach(template);
+                Template template = _context.Templates.SingleOrDefault(_ => _.Id == id);
+                _context.Remove(template);
                 _context.SaveChanges();
                 return new SuccessType();
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return null;
             }
         }
@@ -103,7 +111,7 @@ namespace API.Services
                 {
                     Name = name,
                     Description = description,
-                    Path = "Does not exist!"
+                    Path = ""
                 };
 
 
@@ -123,8 +131,70 @@ namespace API.Services
             }
             catch (Exception e)
             {
-                HandleError(context, e);
+                HandleError(e);
                 return null;
+            }
+        }
+
+        public void UploadTemplate(IFormFile file, int templateId)
+        {
+            CheckAuthenticationForTemplate(templateId);
+
+            Template template = GetTemplateById(templateId);
+
+            if (template != null)
+            {
+                string oldPath = template.Path;
+
+                string newPath = _documentService.SaveTemplate(file, templateId);
+                template.Path = newPath;
+                template.DownloadToken = AuthService.GenerateRandomToken();
+                _context.SaveChanges();
+
+                if (oldPath != "" && oldPath != newPath)
+                {
+                    _documentService.DeleteTemplate(oldPath);
+                }
+                return;
+            }
+            throw new Exception($"Could not find template with id '{templateId}'!");
+        }
+
+        public Document Compile(ResolveFieldContext<Template> context)
+        {
+            int id = context.Source.Id;
+            string templateFieldsJson = context.GetArgument<string>("fields");
+
+            if (string.IsNullOrEmpty(templateFieldsJson))
+            {
+                templateFieldsJson = "[]";
+            }
+
+            try
+            {
+                CheckAuthenticationForTemplate(id);
+
+                Template template = GetTemplateById(id);
+
+                List<List<TemplateField>> templateFields = new List<List<TemplateField>>();
+                DataContractJsonSerializer ser = new DataContractJsonSerializer(templateFields.GetType());
+                templateFields = ser.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(templateFieldsJson)))
+                    as List<List<TemplateField>>;
+
+                if (templateFields?.Count > 1)
+                {
+                    return _documentService.CompileTemplate(template, templateFields);
+                }
+                if (templateFields?.Count == 1)
+                {
+                    return _documentService.CompileTemplate(template, templateFields[0]);
+                }
+                return _documentService.CompileTemplate(template, new List<TemplateField>());
+            }
+            catch (Exception e)
+            {
+                HandleError(e);
+                return new Document();
             }
         }
 
@@ -139,7 +209,7 @@ namespace API.Services
             else
             {
                 Console.WriteLine($"Template of id '{id}' has no user!");
-                _authService.CheckAuthentication(-1);
+                _authService.CheckAuthentication();
             }
         }
 
@@ -154,19 +224,27 @@ namespace API.Services
             else
             {
                 Console.WriteLine($"Template of id '{template.Id}' has no user!");
-                _authService.CheckAuthentication(-1);
+                _authService.CheckAuthentication();
             }
         }
 
-        private void HandleError(ResolveFieldContext<object> context, Exception e)
+        private void HandleError(Exception e)
         {
-            GraphQlErrorService.AttachError(context, e);
+            Console.WriteLine(e.ToString());
+            GraphQlErrorService.Add(e);
         }
 
         private User GetUserWhoOwnsTemplate(int id)
         {
             return _context.Users.Include(_ => _.Templates)
                 .SingleOrDefault(_ => _.Templates.Any(t => t.Id == id));
+        }
+
+
+        public Template GetTemplateByToken(string templateToken)
+        {
+            Template template = _context.Templates.SingleOrDefault(_ => _.DownloadToken == templateToken);
+            return template;
         }
     }
 }

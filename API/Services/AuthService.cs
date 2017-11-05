@@ -29,7 +29,7 @@ namespace API.Services
         }
 
 
-        public string Authorize(string username, string password)
+        public void Authorize(string username, string password)
         {
             IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
             IJsonSerializer serializer = new JsonNetSerializer();
@@ -42,7 +42,7 @@ namespace API.Services
             {
                 string token = encoder.Encode(User, _secret);
                 Token = token;
-                return token;
+                return;
             }
             throw new UnauthorizedAccessException("Credentials incorrect!");
         }
@@ -72,6 +72,7 @@ namespace API.Services
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                throw;
             }
         }
 
@@ -80,12 +81,18 @@ namespace API.Services
             return BCrypt.Net.BCrypt.HashPassword(password, 11);
         }
 
-        public void CheckAuthentication(int id, string role = "admin")
+        public void CheckAuthentication(int id = -1, string role = "admin")
         {
             if (User.Id != id && User.Role.Name != "admin" && User.Role.Name != role)
             {
                 throw new UnauthorizedAccessException();
             }
+        }
+
+        public static string GenerateRandomToken()
+        {
+            Guid g = Guid.NewGuid();
+            return Convert.ToBase64String(g.ToByteArray()).Replace('/', '_');
         }
     }
 }

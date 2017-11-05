@@ -19,6 +19,35 @@ namespace API.Services
             _authService = authService;
         }
 
+        public string GetUserToken(string name, string email)
+        {
+            User user = _context.Users.SingleOrDefault(_ => _.Name == name && _.Email == email);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            user.ResetToken = AuthService.GenerateRandomToken();
+            _context.SaveChanges();
+            return user.ResetToken;
+        }
+
+        public string ResetPassword(string token, string newPassword)
+        {
+            User user = _context.Users.SingleOrDefault(_ => _.ResetToken == token);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            user.Password = AuthService.HashPassword(newPassword);
+            user.ResetToken = "";
+            _context.SaveChanges();
+            return "OK";
+        }
+
         public User GetUser(ResolveFieldContext<object> context)
         {
             int id = context.GetArgument<int>("id");
@@ -42,7 +71,20 @@ namespace API.Services
                 .SingleOrDefault(_ => _.Id == id);
         }
 
-        public object GetActiveUser(ResolveFieldContext<object> context)
+        public User GetActiveUserById(ResolveFieldContext<object> context, int id)
+        {
+            try
+            {
+                return GetUserById(id);
+            }
+            catch (Exception e)
+            {
+                HandleError(context, e);
+                return null;
+            }
+        }
+
+        public User GetActiveUser(ResolveFieldContext<object> context)
         {
             int id = _authService.User.Id;
 
@@ -119,6 +161,7 @@ namespace API.Services
         {
             int id = context.GetArgument<int>("id");
             string username = context.GetArgument<string>("username");
+            string email = context.GetArgument<string>("email");
             string password = context.GetArgument<string>("password");
             string role = context.GetArgument<string>("role");
 
@@ -130,6 +173,7 @@ namespace API.Services
                 {
                     user.Name = username != "" ? username : user.Name;
                     user.Password = password != "" ? AuthService.HashPassword(password) : user.Password;
+                    user.Email = email != "" ? email : user.Email;
                     user.Role = role != "" ? _context.Roles.Single(_ => _.Name == role) : user.Role;
                     _context.SaveChanges();
                     return user;
@@ -186,12 +230,14 @@ namespace API.Services
         {
             string username = context.GetArgument<string>("username");
             string password = context.GetArgument<string>("password");
+            string email = context.GetArgument<string>("email");
 
             try
             {
                 User newUser = new User
                 {
                     Name = username,
+                    Email = email,
                     Password = AuthService.HashPassword(password),
                     Role = _context.Roles.First(_ => _.Name == "user")
                 };

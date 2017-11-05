@@ -11,9 +11,10 @@ using System;
 namespace API.Migrations
 {
     [DbContext(typeof(PDFCreatorContext))]
-    partial class PDFCreatorContextModelSnapshot : ModelSnapshot
+    [Migration("20171022154425_AddedEmailFieldToUser")]
+    partial class AddedEmailFieldToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,8 +39,6 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("Description");
-
-                    b.Property<string>("DownloadToken");
 
                     b.Property<string>("Name")
                         .IsRequired();
@@ -67,8 +66,6 @@ namespace API.Migrations
                         .HasMaxLength(64);
 
                     b.Property<string>("Password");
-
-                    b.Property<string>("ResetToken");
 
                     b.Property<int?>("RoleId");
 
