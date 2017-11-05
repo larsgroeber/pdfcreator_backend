@@ -14,12 +14,12 @@ namespace API.TemplateParser
 
         public string Parse(string expressionFieldContent, List<TemplateField> inputFields)
         {
-            if (inputFields.All(_ => String.IsNullOrEmpty(_.Replacement)))
+            string expression = ReplaceVariables(expressionFieldContent, inputFields);
+
+            if (String.IsNullOrEmpty(expression))
             {
                 return expressionFieldContent;
             }
-
-            string expression = ReplaceVariables(expressionFieldContent, inputFields);
 
             var engine = new Interpreter();
             try
