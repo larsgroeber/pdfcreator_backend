@@ -9,6 +9,7 @@ using API.Models;
 using GraphQL.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace API.Services
 {
@@ -163,11 +164,11 @@ namespace API.Services
         public Document Compile(ResolveFieldContext<Template> context)
         {
             int id = context.Source.Id;
-            string templateFieldsJson = context.GetArgument<string>("fields");
+            string templateFieldsEncoded = context.GetArgument<string>("fields");
 
-            if (string.IsNullOrEmpty(templateFieldsJson))
+            if (string.IsNullOrEmpty(templateFieldsEncoded))
             {
-                templateFieldsJson = "[]";
+                templateFieldsEncoded = "[]";
             }
 
             try
@@ -176,10 +177,17 @@ namespace API.Services
 
                 Template template = GetTemplateById(id);
 
-                List<List<TemplateField>> templateFields = new List<List<TemplateField>>();
-                DataContractJsonSerializer ser = new DataContractJsonSerializer(templateFields.GetType());
-                templateFields = ser.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes(templateFieldsJson)))
-                    as List<List<TemplateField>>;
+                string templateFieldsJson = Encoding.UTF8.GetString(Convert.FromBase64String(templateFieldsEncoded));
+
+                List<List<TemplateField>> templateFields = JsonConvert.DeserializeObject<List<List<TemplateField>>>(templateFieldsJson);
+
+                foreach (List<TemplateField> templateField in templateFields)
+                {
+                    foreach (TemplateField field in templateField)
+                    {
+                        Console.WriteLine(field.ToString());
+                    }
+                }
 
                 if (templateFields?.Count > 1)
                 {
