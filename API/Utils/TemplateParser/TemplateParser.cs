@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Text.RegularExpressions;
 using API.Models;
 using GraphQL;
 
-namespace API.TemplateParser
+namespace API.Utils.TemplateParser
 {
     public class TemplateParser
     {
@@ -54,7 +52,9 @@ namespace API.TemplateParser
 
             foreach (Match match in GetMatches(template, delimiter))
             {
+                Console.WriteLine(match.Value);
                 string field = Regex.Replace(match.Value, $"{delimiter.Left}|{delimiter.Right}", "");
+                CheckForDisallowedCharacters(field);
                 result.Add(ParseTemplateField(field, type));
             }
             return result;
@@ -119,6 +119,33 @@ namespace API.TemplateParser
                 template = Regex.Replace(template, $"{delimiter.Left}.*{delimiter.Right}", String.Empty);
             }
             return template;
+        }
+
+        public string EscapeTemplateFields(string template)
+        {
+            foreach (FieldType fieldType in new[] {FieldType.Placeholder, FieldType.Expression})
+            {
+                Delimiter delimiter = GetDelimiter(fieldType);
+                template = Regex.Replace(template, $"{delimiter.Left}.*{delimiter.Right}", m =>
+                    String.Format("\\verb|{0}|", m.Value));
+            }
+            return template;
+        }
+
+        /// <summary>
+        /// Checks for disallowed characters and throws an exception if it encounters one.
+        /// </summary>
+        /// <param name="template">The template text</param>
+        /// <exception cref="Exception">If a disallowed character is found</exception>
+        public static void CheckForDisallowedCharacters(string template)
+        {
+            foreach (string s in new[] {"|"})
+            {
+                if (Regex.Match(template, s).Length > 0)
+                {
+                    throw new Exception($"The character '{s}' is not allowed inside a templatefield or replacement!");
+                }
+            }
         }
     }
 }

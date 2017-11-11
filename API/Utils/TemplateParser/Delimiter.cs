@@ -1,4 +1,4 @@
-﻿namespace API.TemplateParser
+﻿namespace API.Utils.TemplateParser
 {
     public struct Delimiters
     {

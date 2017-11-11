@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using API.Models;
 using DynamicExpresso;
 
-namespace API.TemplateParser
+namespace API.Utils.TemplateParser
 {
     public class ExpressionParser
     {
@@ -35,16 +35,16 @@ namespace API.TemplateParser
         private string ReplaceVariables(string expressionFieldContent, List<TemplateField> inputFields)
         {
             string expression = expressionFieldContent;
-            foreach (Match match in Regex.Matches(expressionFieldContent, $"{varDelLeft}.*{varDelRight}"))
+            foreach (Match match in Regex.Matches(expressionFieldContent, $"{varDelLeft}(.*?){varDelRight}"))
             {
                 string variable = Regex.Replace(match.Value, $"{varDelLeft}|{varDelRight}", "").Trim();
-                string replacement = inputFields.Find(_ => _.Content == variable)?.Replacement;
-                if (replacement == null)
+                TemplateField replacement = inputFields.Find(_ => _.Content == variable);
+                if (String.IsNullOrEmpty(replacement?.Replacement))
                 {
-                    throw new Exception($"Variable '{variable}' in expression '{expressionFieldContent}' has no replacement!");
+                    return null;
+                    // throw new Exception($"Variable '{variable}' in expression '{expressionFieldContent}' has no replacement!");
                 }
-
-                expression = Regex.Replace(expression, $"{varDelLeft} *{variable} *{varDelRight}", replacement);
+                expression = Regex.Replace(expression, $"{varDelLeft} *{variable} *{varDelRight}", replacement.Replacement);
             }
             return expression;
         }

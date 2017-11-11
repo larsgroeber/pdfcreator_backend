@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using API.Models;
 using API.Services;
 
-namespace API.TemplateParser
+namespace API.Utils.TemplateParser
 {
     public class TemplateAssembler
     {
@@ -28,8 +28,11 @@ namespace API.TemplateParser
                 try
                 {
                     expressionField.Replacement = expressionParser.Parse(expressionField.Content, inputFields);
-                    expressionField.Content = EscapeRegex(expressionField.Content);
-                    finalTemplate = templateParser.ReplaceField(finalTemplate, expressionField, FieldType.Expression);
+                    if (expressionField.Replacement != expressionField.Content)
+                    {
+                        expressionField.Content = EscapeRegex(expressionField.Content);
+                        finalTemplate = templateParser.ReplaceField(finalTemplate, expressionField, FieldType.Expression);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -40,6 +43,7 @@ namespace API.TemplateParser
 
             finalTemplate = templateParser.ReplacePlaceholderFields(finalTemplate, inputFields);
             finalTemplate = templateParser.DeleteCommentsAndVariables(finalTemplate);
+            finalTemplate = templateParser.EscapeTemplateFields(finalTemplate);
 
             return finalTemplate;
         }

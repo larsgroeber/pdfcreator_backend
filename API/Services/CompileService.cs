@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using API.Models;
-using API.TemplateParser;
+using API.Utils.TemplateParser;
 using Microsoft.Extensions.Logging;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
@@ -83,7 +83,7 @@ namespace API.Services
 
             document.Template = File.ReadAllText(pathToMainTex);
 
-            TemplateParser.TemplateParser templateParser = new TemplateParser.TemplateParser();
+            TemplateParser templateParser = new TemplateParser();
 
             // Concat inputTemplateFields with parsed templateFields and choose the ones where
             // replacement is filled
@@ -93,13 +93,10 @@ namespace API.Services
                 .Select(_ => _.OrderByDescending(__ => __.Replacement).First())
                 .ToList();
 
-            if (inputTemplateFields.Count > 0)
-            {
-                _logger.LogInformation("Replacing template fields");
-                TemplateAssembler templateAssembler = new TemplateAssembler(document.Template);
-                document.Template = templateAssembler.Assemble(inputTemplateFields);
-                File.WriteAllText(pathToMainTex, document.Template);
-            }
+            _logger.LogInformation("Replacing template fields");
+            TemplateAssembler templateAssembler = new TemplateAssembler(document.Template);
+            document.Template = templateAssembler.Assemble(inputTemplateFields);
+            File.WriteAllText(pathToMainTex, document.Template);
         }
 
         private string ConvertPdfToDataUri(string pdf)
