@@ -33,19 +33,20 @@ namespace API.Services
             return user.ResetToken;
         }
 
-        public string ResetPassword(string token, string newPassword)
+        public bool ResetPassword(string name, string email, string token, string newPassword)
         {
-            User user = _context.Users.SingleOrDefault(_ => _.ResetToken == token);
+            User user = _context.Users.SingleOrDefault(
+                _ => _.ResetToken == token && _.Name == name && _.Email == email);
 
             if (user == null)
             {
-                return null;
+                return false;
             }
 
             user.Password = AuthService.HashPassword(newPassword);
             user.ResetToken = "";
             _context.SaveChanges();
-            return "OK";
+            return true;
         }
 
         public User GetUser(ResolveFieldContext<object> context)

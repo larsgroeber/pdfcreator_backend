@@ -123,11 +123,18 @@ namespace API.Utils.TemplateParser
 
         public string EscapeTemplateFields(string template)
         {
+            // TODO add this automatically
+            if (!Regex.Match(template, "\\\\usepackage{fancyvrb}").Success)
+            {
+                throw new Exception("Please add a '\\usepackage{fancyvrb}' to your document. " +
+                                    "The template fields are excaped by '\\Verb|...|'.");
+            }
+
             foreach (FieldType fieldType in new[] {FieldType.Placeholder, FieldType.Expression})
             {
                 Delimiter delimiter = GetDelimiter(fieldType);
                 template = Regex.Replace(template, $"{delimiter.Left}.*{delimiter.Right}", m =>
-                    String.Format("\\verb|{0}|", m.Value));
+                    String.Format("\\Verb|{0}|", m.Value));
             }
             return template;
         }

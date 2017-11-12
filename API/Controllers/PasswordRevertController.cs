@@ -13,6 +13,8 @@ namespace API.Controllers
 
     public struct ResetPasswordRequest
     {
+        public string Name { get; set; }
+        public string Email { get; set; }
         public string Token { get; set; }
         public string NewPassword { get; set; }
     }
@@ -37,20 +39,14 @@ namespace API.Controllers
 
             if (String.IsNullOrEmpty(token))
             {
-                return new JsonResult(new
-                {
-                    result = "None"
-                });
+                return new EmptyResult();
             }
 
-//            EmailService.SendMail(email, "Passwort zurücksetzen",
-//                "Hi,\n\njemand (hoffentlich Du) hat ein neues Passwort für Dich angefordert.\n" +
-//                $"Dies ist der Token:\n{token}\n\nDein PDFCreator Backend");
+            EmailService.SendMail(email, "Passwort zurücksetzen",
+                "Hi,\n\njemand (hoffentlich Du) hat ein neues Passwort für Dich angefordert.\n" +
+                $"Dies ist der Token:\n{token}\n\nDein PDFCreator Backend");
 
-            return new JsonResult(new
-            {
-                result = "OK"
-            });
+            return new EmptyResult();
         }
 
         [HttpPost("reset")]
@@ -58,21 +54,19 @@ namespace API.Controllers
         {
             string token = request.Token;
             string newPassword = request.NewPassword;
+            string email = request.Email;
+            string name = request.Name;
 
-            string result = _userService.ResetPassword(token, newPassword);
-            if (String.IsNullOrEmpty(result))
+            if (!_userService.ResetPassword(name, email, token, newPassword))
             {
                 return StatusCode(500);
             }
 
-//            EmailService.SendMail(email, "Passwort zurücksetzen",
-//                "Hi,\n\njemand (hoffentlich Du) hat Dein Passwort zurückgesetzt.\n" +
-//                $"\n\nDein PDFCreator Backend");
+            EmailService.SendMail(email, "Passwort zurücksetzen",
+                "Hi,\n\njemand (hoffentlich Du) hat Dein Passwort zurückgesetzt.\n" +
+                $"\n\nDein PDFCreator Backend");
 
-            return new JsonResult(new
-            {
-                result
-            });
+            return new EmptyResult();
         }
     }
 }

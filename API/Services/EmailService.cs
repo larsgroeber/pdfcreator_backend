@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Mail;
+using System.Net.NetworkInformation;
 
 namespace API.Services
 {
@@ -7,11 +8,14 @@ namespace API.Services
     {
         public static void SendMail(string to, string subject, string body)
         {
-            SmtpClient client = new SmtpClient("http://itp.uni-frankfurt.de");
+            var ipProperties = IPGlobalProperties.GetIPGlobalProperties();
+            string fromMail =  string.Format("{0}@{1}.{2}", "noreply", ipProperties.HostName, ipProperties.DomainName);
+            SmtpClient client = new SmtpClient();
+            client.Host = "localhost";
             client.UseDefaultCredentials = true;
 
             MailMessage mailMessage = new MailMessage();
-            mailMessage.From = new MailAddress("whoever@me.com");
+            mailMessage.From = new MailAddress(fromMail);
             mailMessage.To.Add(to);
             mailMessage.Body = body;
             mailMessage.Subject = "[PDFCreator] " + subject;
