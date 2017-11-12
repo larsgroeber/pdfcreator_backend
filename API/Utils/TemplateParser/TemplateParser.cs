@@ -123,11 +123,21 @@ namespace API.Utils.TemplateParser
 
         public string EscapeTemplateFields(string template)
         {
-            // TODO add this automatically
-            if (!Regex.Match(template, "\\\\usepackage{fancyvrb}").Success)
+            string pkgFancyvrb = "\\usepackage{fancyvrb}";
+            if (!Regex.Match(template, "\\" + pkgFancyvrb).Success)
             {
-                throw new Exception("Please add a '\\usepackage{fancyvrb}' to your document. " +
-                                    "The template fields are excaped by '\\Verb|...|'.");
+                Match usePackageMatch = Regex.Match(template, "usepackage{.*}");
+                if (usePackageMatch.Success)
+                {
+                    template = Regex.Replace(template, usePackageMatch.Value,
+                        string.Format("{0}\n{1}\n", usePackageMatch.Value, pkgFancyvrb));
+                    Console.WriteLine("Added package: " + template);
+                }
+                else
+                {
+                    throw new Exception("Please add a '\\usepackage{fancyvrb}' to your document. " +
+                                        "The template fields are excaped by '\\Verb|...|'.");
+                }
             }
 
             foreach (FieldType fieldType in new[] {FieldType.Placeholder, FieldType.Expression})
