@@ -176,18 +176,8 @@ namespace API.Services
                 CheckAuthenticationForTemplate(id);
 
                 Template template = GetTemplateById(id);
-
                 string templateFieldsJson = Encoding.UTF8.GetString(Convert.FromBase64String(templateFieldsEncoded));
-
                 List<List<TemplateField>> templateFields = JsonConvert.DeserializeObject<List<List<TemplateField>>>(templateFieldsJson);
-
-                foreach (List<TemplateField> templateField in templateFields)
-                {
-                    foreach (TemplateField field in templateField)
-                    {
-                        Console.WriteLine(field.ToString());
-                    }
-                }
 
                 if (templateFields?.Count > 1)
                 {

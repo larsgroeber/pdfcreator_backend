@@ -52,7 +52,6 @@ namespace API.Utils.TemplateParser
 
             foreach (Match match in GetMatches(template, delimiter))
             {
-                Console.WriteLine(match.Value);
                 string field = Regex.Replace(match.Value, $"{delimiter.Left}|{delimiter.Right}", "");
                 CheckForDisallowedCharacters(field);
                 result.Add(ParseTemplateField(field, type));
@@ -131,7 +130,6 @@ namespace API.Utils.TemplateParser
                 {
                     template = Regex.Replace(template, usePackageMatch.Value,
                         string.Format("{0}\n{1}\n", usePackageMatch.Value, pkgFancyvrb));
-                    Console.WriteLine("Added package: " + template);
                 }
                 else
                 {
