@@ -133,8 +133,8 @@ namespace API.Utils.TemplateParser
                 }
                 else
                 {
-                    throw new Exception("Please add a '\\usepackage{fancyvrb}' to your document. " +
-                                        "The template fields are excaped by '\\Verb|...|'.");
+                    throw new Exception(@"Please add a '\usepackage{fancyvrb}' to your document. " +
+                                        @"The template fields are excaped by '\Verb|...|'.");
                 }
             }
 

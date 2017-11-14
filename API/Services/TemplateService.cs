@@ -168,7 +168,7 @@ namespace API.Services
 
             if (string.IsNullOrEmpty(templateFieldsEncoded))
             {
-                templateFieldsEncoded = "[]";
+                templateFieldsEncoded = "";
             }
 
             try
