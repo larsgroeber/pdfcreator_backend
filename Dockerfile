@@ -7,11 +7,11 @@ RUN dotnet restore
 
 # Copy everything else and build
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Release -o out API.csproj
 
 # Build runtime image
 FROM microsoft/aspnetcore:2.0
 ENV ASPNETCORE_ENVIRONMENT=Development
 WORKDIR /app
-COPY --from=build-env /app/API/out .
+COPY --from=build-env /app/out .
 ENTRYPOINT ["dotnet", "API.dll"]
