@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using API.Contexts;
 using API.Models;
+using API.Shared;
 using GraphQL;
 using GraphQL.Types;
 using JWT;
@@ -44,7 +45,7 @@ namespace API.Services
                 Token = token;
                 return;
             }
-            throw new UnauthorizedAccessException("Credentials incorrect!");
+            throw new Exceptions.WrongLoginException("Credentials incorrect!");
         }
 
         public void CheckJwt(string token)

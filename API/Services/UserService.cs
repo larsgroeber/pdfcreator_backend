@@ -3,6 +3,7 @@ using System.Linq;
 using API.Contexts;
 using API.Models;
 using API.Queries;
+using API.Shared;
 using GraphQL.Types;
 using Microsoft.EntityFrameworkCore;
 
@@ -123,6 +124,7 @@ namespace API.Services
                     user.Templates.Add(template);
                     _context.SaveChanges();
                 }
+
                 return user;
             }
             catch (Exception e)
@@ -149,6 +151,7 @@ namespace API.Services
                     user.Templates.Remove(template);
                     _context.SaveChanges();
                 }
+
                 return user;
             }
             catch (Exception e)
@@ -179,6 +182,7 @@ namespace API.Services
                     _context.SaveChanges();
                     return user;
                 }
+
                 throw new Exception($"Could not find user with id '{id}'!");
             }
             catch (Exception e)
@@ -243,6 +247,11 @@ namespace API.Services
                     Role = _context.Roles.First(_ => _.Name == "user")
                 };
 
+                if (GetUserByName(username) != null)
+                {
+                    throw new Exceptions.LoginAlreadyExistsException($"User with username {username} already exist.");
+                }
+
                 _context.Users.Add(newUser);
                 _context.SaveChanges();
                 return newUser;
@@ -254,6 +263,10 @@ namespace API.Services
             }
         }
 
+        private User GetUserByName(string username)
+        {
+            return _context.Users.SingleOrDefault(u => u.Name == username);
+        }
 
         private void HandleError(ResolveFieldContext<object> context, Exception e)
         {

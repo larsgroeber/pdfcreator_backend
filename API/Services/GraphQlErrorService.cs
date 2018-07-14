@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using API.Shared;
 using GraphQL;
 using GraphQL.Types;
 
@@ -19,7 +20,7 @@ namespace API.Services
 
         public static void AttachError(dynamic context, Exception e)
         {
-            context.Errors.Add(new ExecutionError(e.Message));
+            context.Errors.Add(new ExecutionError("E" + ErrorCodes.GetErrorCode(e) + " " + e.Message));
             if (e.InnerException != null)
             {
                 context.Errors.Add(new ExecutionError(e.InnerException.Message));
