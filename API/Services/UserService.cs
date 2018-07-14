@@ -124,6 +124,7 @@ namespace API.Services
                     user.Templates.Add(template);
                     _context.SaveChanges();
                 }
+
                 return user;
             }
             catch (Exception e)
@@ -150,6 +151,7 @@ namespace API.Services
                     user.Templates.Remove(template);
                     _context.SaveChanges();
                 }
+
                 return user;
             }
             catch (Exception e)
@@ -180,6 +182,7 @@ namespace API.Services
                     _context.SaveChanges();
                     return user;
                 }
+
                 throw new Exception($"Could not find user with id '{id}'!");
             }
             catch (Exception e)
