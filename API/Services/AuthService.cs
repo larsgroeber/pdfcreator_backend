@@ -26,7 +26,7 @@ namespace API.Services
         public AuthService(IConfiguration configuration, PDFCreatorContext context)
         {
             _context = context;
-            _secret = configuration["JWT-Secret"];
+            _secret = configuration["JWTSecret"];
         }
 
 
