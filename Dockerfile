@@ -13,7 +13,12 @@ RUN dotnet publish -c Release -o out API.csproj
 
 # Build runtime image
 FROM microsoft/aspnetcore:2.0
-ENV ASPNETCORE_ENVIRONMENT=Development
+RUN apt-get update \
+    && apt-get install -y \
+    texlive-full \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y sendmail 
 WORKDIR /app
 COPY --from=build-env /app/out .
 COPY --from=build-env /app/nginx.conf.sigil .
