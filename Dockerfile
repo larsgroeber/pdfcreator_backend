@@ -4,6 +4,7 @@ WORKDIR /app
 # Copy csproj and restore as distinct layers
 COPY API/API.csproj ./
 ADD nginx.conf.sigil ./
+
 RUN dotnet restore
 
 # Copy everything else and build
