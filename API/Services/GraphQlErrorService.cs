@@ -11,7 +11,7 @@ namespace API.Services
         public static dynamic Context { get; set; }
         public static void Add(Exception e)
         {
-            Context.Errors.Add(new ExecutionError(e.Message));
+            Context.Errors.Add(new ExecutionError("E" + ErrorCodes.GetErrorCode(e) + " " + e.Message));
             if (e.InnerException != null)
             {
                 Context.Errors.Add(new ExecutionError(e.InnerException.Message));

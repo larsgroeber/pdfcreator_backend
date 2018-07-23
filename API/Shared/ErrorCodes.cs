@@ -25,6 +25,11 @@ namespace API.Shared
             {
                 return "2000";
             }
+            
+            if (exception is Exceptions.NotAZipFileException)
+            {
+                return "2010";
+            }
 
             return "0000";
         }

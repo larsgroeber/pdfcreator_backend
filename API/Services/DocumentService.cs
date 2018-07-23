@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using API.Models;
+using API.Shared;
 using API.Utils.TemplateParser;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -43,7 +44,7 @@ namespace API.Services
 
             if (!CompileService.IsZipFile(filePath))
             {
-                throw new Exception($"File {filePath} is not a zip file.");
+                throw new Exceptions.NotAZipFileException($"File {filePath} is not a zip file.");
             }
 
             _logger.LogInformation($"Saving template with id {id} to {directory}.");

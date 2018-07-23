@@ -54,5 +54,22 @@ namespace API.Shared
             {
             }
         }
+        
+        public class NotAZipFileException : Exception
+        {
+            public NotAZipFileException()
+            {
+            }
+
+            public NotAZipFileException(string message)
+                : base(message)
+            {
+            }
+
+            public NotAZipFileException(string message, Exception inner)
+                : base(message, inner)
+            {
+            }
+        }
     }
 }
