@@ -15,6 +15,11 @@ namespace API.Shared
             {
                 return "1010";
             }
+            
+            if (exception is UnauthorizedAccessException)
+            {
+                return "1020";
+            }
 
             if (exception is Exceptions.LatexException)
             {
