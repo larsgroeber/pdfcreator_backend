@@ -1,0 +1,6 @@
+[submodule "Frontend"]
+	path = Frontend
+	url = https://github.com/Larsg7/pdfcreator
+[submodule "API/Frontend"]
+	path = API/Frontend
+	url = https://github.com/Larsg7/pdfcreator
