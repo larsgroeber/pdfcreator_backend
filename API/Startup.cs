@@ -38,6 +38,7 @@ namespace API
             services.AddTransient<DocumentService>();
             services.AddTransient<LatexService>();
             services.AddTransient<CompileService>();
+            services.AddTransient<IEmailService, EmailService>();
             services.AddScoped<AuthService>();
 
             services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()

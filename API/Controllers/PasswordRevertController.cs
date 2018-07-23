@@ -23,10 +23,12 @@ namespace API.Controllers
     public class PasswordRevertController : Controller
     {
         private readonly UserService _userService;
+        private readonly IEmailService _emailService;
 
-        public PasswordRevertController(UserService userService)
+        public PasswordRevertController(UserService userService, IEmailService emailService)
         {
             _userService = userService;
+            _emailService = emailService;
         }
 
         [HttpPost]
@@ -42,9 +44,9 @@ namespace API.Controllers
                 return new EmptyResult();
             }
 
-            EmailService.SendMail(email, "Passwort zurücksetzen",
+            _emailService.SendMail("Passwort zurücksetzen",
                 "Hi,\n\njemand (hoffentlich Du) hat ein neues Passwort für Dich angefordert.\n" +
-                $"Dies ist der Token:\n{token}\n\nDein PDFCreator Backend");
+                $"Dies ist der Token:\n{token}\n\nDein PDFCreator Backend", email);
 
             return new EmptyResult();
         }
@@ -62,9 +64,9 @@ namespace API.Controllers
                 return StatusCode(500);
             }
 
-            EmailService.SendMail(email, "Passwort zurücksetzen",
+            _emailService.SendMail("Passwort zurücksetzen",
                 "Hi,\n\njemand (hoffentlich Du) hat Dein Passwort zurückgesetzt.\n" +
-                $"\n\nDein PDFCreator Backend");
+                $"\n\nDein PDFCreator Backend", email);
 
             return new EmptyResult();
         }

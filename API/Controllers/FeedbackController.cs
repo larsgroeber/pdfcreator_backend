@@ -15,11 +15,12 @@ namespace API.Controllers
     [Route("/api/v1/feedback")]
     public class FeedbackController : Controller
     {
+        private readonly IEmailService _emailService;
         private readonly string _supportMail;
 
-        public FeedbackController(IConfiguration configuration)
+        public FeedbackController(IConfiguration configuration, IEmailService emailService)
         {
-            _supportMail = configuration["SupportMail"];
+            _emailService = emailService;
         }
 
         [HttpPost]
@@ -29,7 +30,7 @@ namespace API.Controllers
             string feedback = request.Feedback;
             string type = request.Type;
 
-            EmailService.SendMail(_supportMail, "Feedback",
+            _emailService.SendMail("Feedback",
                 string.Format("Ein neues Feedback wurde abgegeben:\n" +
                               "Name: {0}\n" +
                               "Art: {1}\n" +
