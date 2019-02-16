@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using API.Shared;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 
@@ -38,7 +39,7 @@ namespace API.Services
                 {
                     outputErrors.Add(Regex.Replace(match.Value, "!", String.Empty).Trim());
                 }
-                throw new Exception(outputErrors.Join(" "));
+                throw new Exceptions.LatexException(outputErrors.Join(" "));
             }
         }
     }

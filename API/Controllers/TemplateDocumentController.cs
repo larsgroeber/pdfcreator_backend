@@ -29,7 +29,7 @@ namespace API.Controllers
             Template template = _templateService.GetTemplateByToken(token);
             if (template == null)
             {
-                return StatusCode(404);
+                return StatusCode(400);
             }
 
             return File(new FileStream(template.Path, FileMode.Open), "application/zip", template.Name + ".zip");
